@@ -68,6 +68,8 @@
 
   /* ---------- header / speaker ---------- */
   header { display: flex; align-items: center; gap: 22px; margin-bottom: 32px; animation: rise .6s ease both; }
+  body:not([data-view="intro"]) header { cursor: pointer; }
+  body:not([data-view="intro"]) header:hover h1 { text-shadow: 0 0 2px #fff, 0 0 20px rgba(255,45,155,.85), 0 0 46px rgba(255,45,155,.6); }
   .title-block { min-width: 0; }
   .kicker {
     font: 700 12px/1 var(--mono);
@@ -649,6 +651,7 @@ function setView(name) {
   el('quizView').hidden  = name !== 'quiz';
   document.querySelector('.section').hidden = name === 'intro';
   document.body.setAttribute('data-view', name);
+  document.querySelector('header').title = name === 'intro' ? '' : 'Tillbaka till start';
   if (name !== 'quiz')  el('audio').pause();
   if (name !== 'setup') stopPreview();
   window.scrollTo({ top: 0 });
@@ -670,6 +673,14 @@ el('startBtn').onclick = () => {
 el('backToSetup').onclick = () => showSetup();
 el('modeVTV').onclick     = () => showSetup();
 el('backToIntro').onclick = () => showIntro();
+
+// Klick på loggan/headern avslutar pågående omgång och går till start (bekräftar mitt i quiz).
+document.querySelector('header').addEventListener('click', () => {
+  const view = document.body.getAttribute('data-view');
+  if (view === 'intro') return;
+  if (view === 'quiz' && !confirm('Avsluta pågående quiz och gå tillbaka till start?')) return;
+  showIntro();
+});
 
 /* ---------- quiz view ---------- */
 function renderTrack() {
