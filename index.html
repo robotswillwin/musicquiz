@@ -359,6 +359,8 @@
     padding: 0 13px; border-radius: 9px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink); cursor: pointer;
   }
   .spot-redir-row button:hover { border-color: var(--cyan); }
+  .spin { display: inline-block; width: 13px; height: 13px; margin-right: 8px; vertical-align: -2px; border: 2px solid var(--card-line); border-top-color: var(--cyan); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .all-facit { margin-top: 18px; }
   .all-facit h2 { font: 800 12px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); margin: 0 0 6px; }
@@ -875,7 +877,7 @@ async function spLogin() {
   const params = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID, response_type: 'code', redirect_uri: spRedirect(),
     code_challenge_method: 'S256', code_challenge: await spChallenge(verifier),
-    scope: SPOTIFY_SCOPES, state: spRand(12),
+    scope: SPOTIFY_SCOPES, state: spRand(12), show_dialog: 'true',
   });
   location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
 }
@@ -894,9 +896,11 @@ function spSave(d) {
   localStorage.setItem(SP_TOKEN_KEY, JSON.stringify({
     access_token: d.access_token,
     refresh_token: d.refresh_token || cur.refresh_token || '',
+    scope: d.scope != null ? d.scope : (cur.scope || ''),
     expires_at: Date.now() + (d.expires_in || 3600) * 1000 - 60000,
   }));
 }
+function spScope() { const t = JSON.parse(localStorage.getItem(SP_TOKEN_KEY) || 'null'); return (t && t.scope) || '(inga)'; }
 async function spToken() {
   const tok = JSON.parse(localStorage.getItem(SP_TOKEN_KEY) || 'null');
   if (!tok) return null;
@@ -929,7 +933,7 @@ async function spLoadTracks(id) {
     if (!res.ok) {
       let why = '';
       try { const j = await res.json(); if (j && j.error && j.error.message) why = ' – ' + j.error.message; } catch (e) {}
-      if (res.status === 403) throw new Error('Spotify nekade åtkomst (403' + why + '). Spotify-ägda listor (topplistor, Discover Weekly m.fl.) är API-spärrade — välj en egen spellista.');
+      if (res.status === 403) throw new Error('Spotify nekade (403' + why + '). Beviljade behörigheter: "' + spScope() + '". Saknas "playlist-read-private" → logga ut och anslut igen. Annars är listan Spotify-ägd/spärrad.');
       if (res.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?)' + why + '.');
       throw new Error('Kunde inte hämta spellistan (' + res.status + why + ').');
     }
@@ -974,7 +978,7 @@ async function spMyPlaylists() {
 }
 async function spShowMyPlaylists() {
   const root = el('spotPlaylists'), st = el('spotListStatus');
-  root.innerHTML = ''; st.textContent = 'Hämtar dina spellistor…';
+  root.innerHTML = ''; st.innerHTML = '<span class="spin"></span>Hämtar dina spellistor…';
   try {
     const lists = await spMyPlaylists();
     st.textContent = lists.length ? '' : 'Inga egna spellistor (Spotify-ägda listor är API-spärrade) — klistra in en länk nedan.';
@@ -991,7 +995,7 @@ async function spShowMyPlaylists() {
   } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
 }
 async function spStartFromId(id) {
-  const st = el('spotListStatus'); st.textContent = 'Hämtar låtar…';
+  const st = el('spotListStatus'); st.innerHTML = '<span class="spin"></span>Hämtar låtar…';
   try {
     const tracks = await spLoadTracks(id);
     if (!tracks.length) throw new Error('Inga låtar i spellistan.');
@@ -1030,7 +1034,7 @@ el('spotBackToIntro').onclick = () => showIntro();
 el('spotLoginBtn').onclick = () => spLogin();
 el('spotLogout').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); el('spotStatus').textContent = ''; spShow('connect'); };
 el('spotLoadBtn').onclick = async () => {
-  const s = el('spotPickStatus'); s.textContent = 'Hämtar spellistan…';
+  const s = el('spotPickStatus'); s.innerHTML = '<span class="spin"></span>Hämtar spellistan…';
   try {
     const tracks = await spLoadPlaylist(el('spotUrl').value);
     if (!tracks.length) throw new Error('Inga låtar i spellistan.');
