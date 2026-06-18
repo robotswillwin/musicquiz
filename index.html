@@ -12,6 +12,13 @@
     font-display: swap;
     src: url("fonts/monoton.woff2") format("woff2");
   }
+  @font-face {
+    font-family: "Neonderthaw";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/neonderthaw.woff2") format("woff2");
+  }
   :root {
     --bg:        #07060d;
     --ink:       #f4effe;
@@ -78,17 +85,12 @@
     margin: 0 0 12px;
   }
   h1 {
-    font-family: var(--display);
-    font-size: clamp(40px, 9.5vw, 80px);
-    line-height: 1.05; letter-spacing: .035em; margin: 0;
-    font-weight: 800; text-transform: uppercase;
-    color: var(--magenta-2);
-    text-shadow: 0 0 6px rgba(255,45,155,.9), 0 0 16px rgba(255,45,155,.7), 0 0 34px rgba(255,45,155,.5), 0 0 62px rgba(255,45,155,.32);
+    font-family: "Neonderthaw", cursive;
+    font-size: clamp(48px, 11vw, 92px);
+    line-height: 1.15; letter-spacing: 0; margin: 0;
+    font-weight: 400; color: #fff; text-transform: none;
+    text-shadow: 0 0 3px #fff, 0 0 14px rgba(255,45,155,.92), 0 0 32px rgba(255,45,155,.68), 0 0 60px rgba(255,45,155,.45);
     animation: flickerIn 1.3s steps(1, end) both;
-  }
-  /* hollow neon-tube outline (HITSTER-stil); faller tillbaka till fylld neon om text-stroke saknas */
-  @supports (-webkit-text-stroke: 1px red) {
-    h1 { color: transparent; -webkit-text-stroke: 2px var(--magenta-2); }
   }
   .section {
     font-family: var(--display);
@@ -102,7 +104,7 @@
   h1 { transition: font-size .45s cubic-bezier(.2,.7,.2,1); }
   .speaker { transition: width .45s cubic-bezier(.2,.7,.2,1), height .45s cubic-bezier(.2,.7,.2,1), padding .45s cubic-bezier(.2,.7,.2,1); }
   body[data-view="intro"] .speaker { --spk: 116px; }
-  body[data-view="intro"] h1 { font-size: clamp(44px, 11vw, 88px); -webkit-text-stroke-width: 2.4px; }
+  body[data-view="intro"] h1 { font-size: clamp(54px, 13vw, 108px); }
 
   .intro-lead { font: 800 12px/1 var(--mono); letter-spacing: .32em; text-transform: uppercase; color: var(--muted); margin: 6px 0 18px; animation: rise .5s .1s ease both; }
   .modes { display: flex; flex-direction: column; gap: 14px; }
