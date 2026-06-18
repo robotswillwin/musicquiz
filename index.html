@@ -335,6 +335,18 @@
   .spot-input::placeholder { color: var(--muted); }
   .spot-art-wrap { display: flex; justify-content: center; padding-top: 18px; }
   .spot-art { width: 180px; max-width: 60%; border-radius: 12px; box-shadow: 0 14px 34px -12px rgba(0,0,0,.8); }
+  .spot-pls { list-style: none; margin: 0 0 4px; padding: 0; max-height: 46vh; overflow-y: auto; }
+  .spot-pls li { margin-bottom: 8px; }
+  .spot-pl-btn {
+    width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; text-align: left;
+    padding: 13px 15px; border-radius: 11px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); cursor: pointer; font-family: var(--body);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .spot-pl-btn:hover { border-color: var(--cyan); box-shadow: 0 0 16px rgba(34,233,255,.25); }
+  .spot-pl-name { font-size: 15px; font-weight: 600; word-break: break-word; }
+  .spot-pl-n { flex: 0 0 auto; font: 700 11px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+  .spot-or { text-align: center; color: var(--muted); font: 700 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; margin: 22px 0 14px; }
 
   .all-facit { margin-top: 18px; }
   .all-facit h2 { font: 800 12px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); margin: 0 0 6px; }
@@ -506,7 +518,10 @@
     </div>
 
     <div id="spotPick" hidden>
-      <p class="sub">Ansluten ✓ — klistra in en länk till en Spotify-spellista.</p>
+      <p class="sub">Ansluten ✓ — välj en av dina spellistor, eller klistra in en länk.</p>
+      <ol class="spot-pls" id="spotPlaylists"></ol>
+      <p class="status" id="spotListStatus">Hämtar dina spellistor…</p>
+      <p class="spot-or">eller klistra in en länk</p>
       <input id="spotUrl" class="spot-input" type="text" inputmode="url" placeholder="https://open.spotify.com/playlist/…">
       <button class="primary-btn" id="spotLoadBtn">Skapa quiz →</button>
       <p class="status" id="spotPickStatus"></p>
@@ -885,9 +900,7 @@ function spParseId(url) {
   const bare = String(url).trim();
   return /^[A-Za-z0-9]{22}$/.test(bare) ? bare : null;
 }
-async function spLoadPlaylist(url) {
-  const id = spParseId(url);
-  if (!id) throw new Error('Ogiltig spellistlänk.');
+async function spLoadTracks(id) {
   const token = await spToken();
   if (!token) throw new Error('Inte inloggad — anslut Spotify igen.');
   const headers = { Authorization: 'Bearer ' + token };
@@ -914,6 +927,55 @@ async function spLoadPlaylist(url) {
   }
   return out;
 }
+async function spLoadPlaylist(url) {
+  const id = spParseId(url);
+  if (!id) throw new Error('Ogiltig spellistlänk.');
+  return spLoadTracks(id);
+}
+async function spMyPlaylists() {
+  const token = await spToken();
+  if (!token) throw new Error('Inte inloggad.');
+  const headers = { Authorization: 'Bearer ' + token };
+  const out = [];
+  let next = 'https://api.spotify.com/v1/me/playlists?limit=50';
+  while (next) {
+    const res = await fetch(next, { headers });
+    if (!res.ok) throw new Error('Kunde inte hämta spellistor (' + res.status + ').');
+    const data = await res.json();
+    for (const p of (data.items || [])) {
+      if (p && p.id) out.push({ id: p.id, name: p.name || '(namnlös)', total: (p.tracks && p.tracks.total) || 0 });
+    }
+    next = data.next;
+  }
+  return out;
+}
+async function spShowMyPlaylists() {
+  const root = el('spotPlaylists'), st = el('spotListStatus');
+  root.innerHTML = ''; st.textContent = 'Hämtar dina spellistor…';
+  try {
+    const lists = await spMyPlaylists();
+    st.textContent = lists.length ? '' : 'Inga spellistor hittades — klistra in en länk istället.';
+    lists.forEach(pl => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.className = 'spot-pl-btn';
+      b.innerHTML = '<span class="spot-pl-name"></span><span class="spot-pl-n"></span>';
+      b.querySelector('.spot-pl-name').textContent = pl.name;
+      b.querySelector('.spot-pl-n').textContent = pl.total + ' låtar';
+      b.onclick = () => spStartFromId(pl.id);
+      li.appendChild(b); root.appendChild(li);
+    });
+  } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
+}
+async function spStartFromId(id) {
+  const st = el('spotListStatus'); st.textContent = 'Hämtar låtar…';
+  try {
+    const tracks = await spLoadTracks(id);
+    if (!tracks.length) throw new Error('Inga låtar i spellistan.');
+    spotQueue = tracks; spotI = 0; st.textContent = '';
+    spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 });
+  } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
+}
 
 function spShow(step) {
   el('spotConnect').hidden = step !== 'connect';
@@ -937,7 +999,10 @@ function renderSpot() {
   el('spotNext').disabled = spotI === spotQueue.length - 1;
 }
 
-el('modeSpotify').onclick = () => { setView('spotify'); spShow(spLoggedIn() ? 'pick' : 'connect'); };
+el('modeSpotify').onclick = () => {
+  setView('spotify');
+  if (spLoggedIn()) { spShow('pick'); spShowMyPlaylists(); } else spShow('connect');
+};
 el('spotBackToIntro').onclick = () => showIntro();
 el('spotLoginBtn').onclick = () => spLogin();
 el('spotLogout').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); el('spotStatus').textContent = ''; spShow('connect'); };
@@ -965,7 +1030,7 @@ async function initSpotify() {
   let ok = false;
   try { ok = await spExchange(code); } catch (e) {}
   history.replaceState({}, '', spRedirect());
-  if (ok) spShow('pick');
+  if (ok) { spShow('pick'); spShowMyPlaylists(); }
   else el('spotStatus').innerHTML = '<span class="error">Inloggning misslyckades. Försök igen.</span>';
 }
 
