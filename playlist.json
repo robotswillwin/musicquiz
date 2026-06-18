@@ -1,93 +1,86 @@
 [
   {
-    "fil": "audio/Kraftiga Vindar - Kent spelar kenta - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Eddie spelar eddie.ogg",
+    "tolkare": "Eddie Vedder",
+    "original": "Eddie Meduza",
+    "originallat": "Mera brännvin",
+    "ar": "1981"
   },
   {
-    "fil": "audio/Kraftiga Vindar - Kent spelar kenta - Treblo.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Frank spelar Frank.mp3",
+    "tolkare": "Frank Sinatra",
+    "original": "Frank Zappa",
+    "originallat": "Bobby Brown",
+    "ar": "1979"
   },
   {
-    "fil": "audio/Känna Att Du Lever -  The king sjunger Queen  - Treblo.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Henrik som henrik.ogg",
+    "tolkare": "Henrik Berggren",
+    "original": "Henrik Dorsin",
+    "originallat": "Bögarnas fel",
+    "ar": "2010"
   },
   {
-    "fil": "audio/Känna Att Du Lever - Frank spelar Frank  - Treblo.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Joakim sjunger Jocke.mp3",
+    "tolkare": "Joakim Thåström",
+    "original": "Jokkmokks--Jokke",
+    "originallat": "Gulli-Gullan",
+    "ar": "1963"
   },
   {
-    "fil": "audio/Känna Att Du Lever - Joakim sjunger Jocke  - Treblo.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Kent spelar kenta.mp3",
+    "tolkare": "Kent",
+    "original": "Kenta",
+    "originallat": "Just idag är jag stark",
+    "ar": "1979"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Eddie som eddie - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Kurt som kurt.ogg",
+    "tolkare": "Kurt Cobain",
+    "original": "Kurt Olsson",
+    "originallat": "Flickor bak i bilen",
+    "ar": "1988"  
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Henrik som henrik - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Lars som Lasse.ogg",
+    "tolkare": "Lars Winnerbäck",
+    "original": "Lasse Holm",
+    "originallat": "Canneloni Macaroni",
+    "ar": "1986"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Kurt som kurt - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Magnus som magnus.ogg",
+    "tolkare": "Magnus Uggla",
+    "original": "Magnus Härenstam",
+    "originallat": "Svordomssvisan",
+    "ar": "1976"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Lars som Lasse - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Per som Pär.mp3",
+    "tolkare": "Per Gessle",
+    "original": "Pär Andersson",
+    "originallat": "Kuk i hatte",
+    "ar": "2012"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Magnus som magnus - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/The king sjunger Queen.mp3",
+    "tolkare": "Elvis Presley - The King",
+    "original": "Freddie Mercury - Queen",
+    "originallat": "Bohemian Rhapsody",
+    "ar": "1975"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Per som Pär - Sonauto.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/Tommy om tommy.ogg",
+    "tolkare": "Tommy Körberg",
+    "original": "Carola Häggkvist",
+    "originallat": "Tommy tycker om mig",
+    "ar": "1984"
   },
   {
-    "fil": "audio/Pumptagen i Sängen - Tommy om tommy - Sonauto.ogg",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
-  },
-  {
-    "fil": "audio/Sick Desire - tommy älskar tommy - Treblo.mp3",
-    "tolkare": "",
-    "original": "",
-    "originallat": "",
-    "ar": ""
+    "fil": "audio/tommy älskar tommy.mp3",
+    "tolkare": "Tommy Nilsson",
+    "original": "Tommy Nilsson",
+    "originallat": "Vill du ha sex med mig",
+    "ar": "2005"
   }
 ]

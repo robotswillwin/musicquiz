@@ -140,7 +140,12 @@
   }
   .lib-play:hover { box-shadow: 0 0 16px rgba(34,233,255,.5); }
   .lib-play.playing { background: var(--magenta); border-color: var(--magenta); color: #fff; box-shadow: 0 0 20px rgba(255,45,155,.6); }
+  .lib-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .lib-name { font-size: 15px; line-height: 1.3; word-break: break-word; }
+  .lib-answer { font-size: 13px; line-height: 1.35; color: var(--muted); word-break: break-word; }
+  .lib-answer b { color: var(--magenta-2); font-weight: 700; }
+  .lib-answer .arrow { color: var(--muted); font-style: normal; }
+  .lib-answer i { color: var(--lime); font-style: italic; }
   .lib-move { display: inline-flex; gap: 5px; }
   .lib-move button {
     width: 32px; height: 32px; border-radius: 8px;
@@ -381,6 +386,17 @@ const escapeHtml = s => String(s).replace(/[&<>"]/g,
 const niceName = fil => fil.replace(/^audio\//, '').replace(/\.(mp3|ogg)$/i, '');
 const metaFor  = fil => library.find(t => t.fil === fil) || { fil };
 
+// Setup-rad: visa facit (de korrekta svaren) om något fält är ifyllt, annars inget.
+function answerLine(t) {
+  const a = (t.tolkare || '').trim(), b = (t.original || '').trim(),
+        c = (t.originallat || '').trim(), y = (t.ar || '').trim();
+  if (!a && !b && !c && !y) return '';
+  let s = '';
+  if (a || b) s += '<b>' + escapeHtml(a || '?') + '</b> <span class="arrow">tolkar</span> ' + escapeHtml(b || '?');
+  if (c || y) s += (s ? ' · ' : '') + '<i>' + escapeHtml(c || '?') + (y ? ' (' + escapeHtml(y) + ')' : '') + '</i>';
+  return s;
+}
+
 /* ---------- load + persistence ---------- */
 async function load() {
   try {
@@ -431,6 +447,7 @@ function renderLibrary() {
   let pos = 0;
   order.forEach((item, idx) => {
     const p = item.on ? ++pos : null;
+    const ans = answerLine(metaFor(item.fil));
     const li = document.createElement('li');
     li.className = 'lib-item' + (item.on ? ' on' : '');
     li.dataset.fil = item.fil;
@@ -438,7 +455,10 @@ function renderLibrary() {
       '<input type="checkbox" class="lib-check" ' + (item.on ? 'checked' : '') + ' aria-label="Inkludera i quiz">' +
       '<span class="lib-pos">' + (p ? String(p).padStart(2, '0') : '–') + '</span>' +
       '<button class="lib-play" aria-label="Förhandslyssna">▶</button>' +
-      '<span class="lib-name">' + escapeHtml(niceName(item.fil)) + '</span>' +
+      '<span class="lib-text">' +
+        '<span class="lib-name">' + escapeHtml(niceName(item.fil)) + '</span>' +
+        (ans ? '<span class="lib-answer">' + ans + '</span>' : '') +
+      '</span>' +
       '<span class="lib-move">' +
         '<button class="mv-up" aria-label="Flytta upp" ' + (idx === 0 ? 'disabled' : '') + '>↑</button>' +
         '<button class="mv-down" aria-label="Flytta ned" ' + (idx === order.length - 1 ? 'disabled' : '') + '>↓</button>' +
