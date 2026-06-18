@@ -926,8 +926,13 @@ async function spLoadTracks(id) {
   while (next) {
     const res = await fetch(next, { headers });
     if (res.status === 401) throw new Error('Sessionen gick ut — logga in igen.');
-    if (res.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?).');
-    if (!res.ok) throw new Error('Kunde inte hämta spellistan (' + res.status + ').');
+    if (!res.ok) {
+      let why = '';
+      try { const j = await res.json(); if (j && j.error && j.error.message) why = ' – ' + j.error.message; } catch (e) {}
+      if (res.status === 403) throw new Error('Spotify nekade åtkomst (403' + why + '). Spotify-ägda listor (topplistor, Discover Weekly m.fl.) är API-spärrade — välj en egen spellista.');
+      if (res.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?)' + why + '.');
+      throw new Error('Kunde inte hämta spellistan (' + res.status + why + ').');
+    }
     const data = await res.json();
     for (const it of (data.items || [])) {
       const t = it.track; if (!t) continue;
@@ -959,7 +964,9 @@ async function spMyPlaylists() {
     if (!res.ok) throw new Error('Kunde inte hämta spellistor (' + res.status + ').');
     const data = await res.json();
     for (const p of (data.items || [])) {
-      if (p && p.id) out.push({ id: p.id, name: p.name || '(namnlös)', total: (p.tracks && p.tracks.total) || 0 });
+      // Spotify-ägda (editorial/algoritmiska) listor är API-spärrade för nya appar -> hoppa över dem
+      if (p && p.id && !(p.owner && p.owner.id === 'spotify'))
+        out.push({ id: p.id, name: p.name || '(namnlös)', total: (p.tracks && p.tracks.total) || 0 });
     }
     next = data.next;
   }
@@ -970,7 +977,7 @@ async function spShowMyPlaylists() {
   root.innerHTML = ''; st.textContent = 'Hämtar dina spellistor…';
   try {
     const lists = await spMyPlaylists();
-    st.textContent = lists.length ? '' : 'Inga spellistor hittades — klistra in en länk istället.';
+    st.textContent = lists.length ? '' : 'Inga egna spellistor (Spotify-ägda listor är API-spärrade) — klistra in en länk nedan.';
     lists.forEach(pl => {
       const li = document.createElement('li');
       const b = document.createElement('button');
