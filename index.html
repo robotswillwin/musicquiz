@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coverquiz</title>
+<style>
+  :root {
+    --ink: #15140f;
+    --paper: #efe9dc;
+    --card: #fbf8f0;
+    --line: #d6cdb8;
+    --accent: #b4451f;       /* burnt vermilion */
+    --accent-ink: #fff5ec;
+    --muted: #8a8166;
+    --good: #4d6b2f;
+    --shadow: 0 1px 0 #fff inset, 0 18px 40px -22px rgba(21,20,15,.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(180,69,31,.05), transparent 60%),
+      radial-gradient(circle at 85% 80%, rgba(77,107,47,.05), transparent 55%);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: clamp(20px, 5vw, 56px) 20px 80px; }
+
+  header { margin-bottom: 28px; }
+  .kicker {
+    font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-size: clamp(38px, 9vw, 76px);
+    line-height: .92;
+    letter-spacing: -.02em;
+    margin: 0;
+    font-weight: 800;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .sub { color: var(--muted); margin: 14px 0 0; max-width: 46ch; font-size: 16px; }
+
+  .counter {
+    font: 600 13px/1 ui-monospace, Menlo, monospace;
+    color: var(--muted);
+    letter-spacing: .12em;
+    margin: 30px 0 12px;
+  }
+  .counter b { color: var(--ink); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: clamp(20px, 4vw, 32px);
+  }
+
+  .tracknum {
+    font-size: clamp(64px, 18vw, 132px);
+    line-height: .8;
+    font-weight: 800;
+    letter-spacing: -.04em;
+    color: var(--ink);
+    margin: 0 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .filename {
+    font: 500 13px/1 ui-monospace, Menlo, monospace;
+    color: var(--muted);
+    margin: 0 0 22px;
+    word-break: break-all;
+  }
+
+  audio { width: 100%; margin-bottom: 22px; }
+
+  .reveal-btn {
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    padding: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform .08s ease, filter .15s ease;
+  }
+  .reveal-btn:hover { filter: brightness(1.06); }
+  .reveal-btn:active { transform: translateY(1px); }
+  .reveal-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  .facit {
+    margin-top: 22px;
+    border-top: 2px solid var(--ink);
+    padding-top: 4px;
+    display: none;
+  }
+  .facit.show { display: block; animation: drop .25s ease; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .label {
+    font: 600 11px/1 ui-monospace, Menlo, monospace;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex: 0 0 auto;
+    padding-top: 8px;
+  }
+  .row .val {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 700;
+    text-align: right;
+    line-height: 1.1;
+  }
+  .row.bonus .label { color: var(--good); }
+  .row.bonus .val { font-style: italic; font-weight: 600; }
+  .pts {
+    display: inline-block;
+    font: 700 12px/1 ui-monospace, Menlo, monospace;
+    color: var(--accent);
+    margin-left: 8px;
+    vertical-align: super;
+  }
+  .row.bonus .pts { color: var(--good); }
+
+  nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 26px;
+  }
+  nav button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  nav button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  nav button:disabled { opacity: .3; cursor: default; }
+  nav button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .error { color: var(--accent); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .facit.show { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Spelledare · facit nedan</p>
+    <h1>Vem tolkar <em>vem?</em></h1>
+    <p class="sub">Spela låten. Lagen gissar tolkande artist och originalartist — plus originalets titel för bonuspoäng. Fäll ut facit när alla svarat.</p>
+  </header>
+
+  <p class="counter">Låt <b id="cur">–</b> av <b id="total">–</b></p>
+
+  <div class="card" id="card">
+    <p class="tracknum" id="tracknum">–</p>
+    <p class="filename" id="filename">Laddar…</p>
+    <audio id="audio" controls preload="none"></audio>
+
+    <button class="reveal-btn" id="revealBtn">Visa facit</button>
+
+    <div class="facit" id="facit">
+      <div class="row">
+        <span class="label">Tolkare<span class="pts">1p</span></span>
+        <span class="val" id="tolkare"></span>
+      </div>
+      <div class="row">
+        <span class="label">Original<span class="pts">1p</span></span>
+        <span class="val" id="original"></span>
+      </div>
+      <div class="row bonus">
+        <span class="label">Originallåt<span class="pts">+1</span></span>
+        <span class="val" id="originallat"></span>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <button id="prev">← Föregående</button>
+    <button id="next">Nästa →</button>
+  </nav>
+</div>
+
+<script>
+let tracks = [];
+let i = 0;
+
+const el = id => document.getElementById(id);
+
+async function load() {
+  try {
+    const res = await fetch('playlist.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('playlist.json hittades inte (' + res.status + ')');
+    tracks = await res.json();
+    if (!Array.isArray(tracks) || tracks.length === 0) throw new Error('playlist.json är tom');
+    el('total').textContent = tracks.length;
+    render();
+  } catch (e) {
+    el('filename').innerHTML = '<span class="error">Fel: ' + e.message + '</span>';
+    el('revealBtn').disabled = true;
+  }
+}
+
+function render() {
+  const t = tracks[i];
+  el('cur').textContent = i + 1;
+  el('tracknum').textContent = String(i + 1).padStart(2, '0');
+  el('filename').textContent = t.fil;
+  el('audio').src = t.fil;
+  el('tolkare').textContent = t.tolkare || '—';
+  el('original').textContent = t.original || '—';
+  el('originallat').textContent = t.originallat || '—';
+  el('facit').classList.remove('show');
+  el('revealBtn').textContent = 'Visa facit';
+  el('prev').disabled = i === 0;
+  el('next').disabled = i === tracks.length - 1;
+}
+
+el('revealBtn').onclick = () => {
+  const f = el('facit');
+  f.classList.toggle('show');
+  el('revealBtn').textContent = f.classList.contains('show') ? 'Dölj facit' : 'Visa facit';
+};
+el('prev').onclick = () => { if (i > 0) { i--; render(); } };
+el('next').onclick = () => { if (i < tracks.length - 1) { i++; render(); } };
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') el('next').click();
+  if (e.key === 'ArrowLeft') el('prev').click();
+  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); el('revealBtn').click(); }
+});
+
+load();
+</script>
+</body>
+</html>
