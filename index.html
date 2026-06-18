@@ -347,6 +347,18 @@
   .spot-pl-name { font-size: 15px; font-weight: 600; word-break: break-word; }
   .spot-pl-n { flex: 0 0 auto; font: 700 11px/1 var(--mono); color: var(--muted); white-space: nowrap; }
   .spot-or { text-align: center; color: var(--muted); font: 700 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; margin: 22px 0 14px; }
+  .spot-redir { margin-top: 26px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .spot-redir p { margin: 0 0 8px; }
+  .spot-redir-row { display: flex; gap: 8px; align-items: stretch; }
+  .spot-redir code {
+    flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font: 600 12px/1.4 var(--mono); color: var(--cyan);
+    background: rgba(34,233,255,.07); border: 1px solid var(--card-line); border-radius: 9px; padding: 9px 11px;
+  }
+  .spot-redir-row button {
+    flex: 0 0 auto; font: 700 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+    padding: 0 13px; border-radius: 9px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  .spot-redir-row button:hover { border-color: var(--cyan); }
 
   .all-facit { margin-top: 18px; }
   .all-facit h2 { font: 800 12px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); margin: 0 0 6px; }
@@ -515,6 +527,10 @@
       <p class="sub">Hämtar låtarna från en Spotify-spellista. Anslut ditt Spotify-konto (vanligt konto räcker) — sedan spelar du låtarna i Spotify och appen visar facit.</p>
       <button class="primary-btn" id="spotLoginBtn">Anslut Spotify</button>
       <p class="status" id="spotStatus"></p>
+      <div class="spot-redir">
+        <p>Får du <b>redirect_uri</b>-fel? Lägg in <b>exakt</b> denna rad i din Spotify-app (Settings → Redirect URIs → Add → Save):</p>
+        <div class="spot-redir-row"><code id="spotRedir"></code><button id="spotCopyRedir" type="button">Kopiera</button></div>
+      </div>
     </div>
 
     <div id="spotPick" hidden>
@@ -1022,6 +1038,13 @@ el('spotRevealBtn').onclick = () => {
 el('spotPrev').onclick = () => { if (spotI > 0) { spotI--; renderSpot(); } };
 el('spotNext').onclick = () => { if (spotI < spotQueue.length - 1) { spotI++; renderSpot(); } };
 el('spotNewList').onclick = () => { el('spotUrl').value = ''; el('spotPickStatus').textContent = ''; spShow('pick'); };
+
+el('spotRedir').textContent = spRedirect();
+el('spotCopyRedir').onclick = () => {
+  if (navigator.clipboard) navigator.clipboard.writeText(spRedirect());
+  el('spotCopyRedir').textContent = 'Kopierat ✓';
+  setTimeout(() => { el('spotCopyRedir').textContent = 'Kopiera'; }, 1500);
+};
 
 async function initSpotify() {
   const code = new URLSearchParams(location.search).get('code');
