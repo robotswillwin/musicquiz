@@ -263,6 +263,19 @@
   .status .error { color: var(--magenta-2); font-weight: 700; }
 
   audio { width: 100%; margin-bottom: 22px; border-radius: 10px; }
+  .track-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+  .track-top .tracknum { margin: 0; }
+  .reveal-top {
+    flex: 0 0 auto; align-self: center; white-space: nowrap;
+    font: 700 14px/1 var(--mono); letter-spacing: .04em;
+    padding: 13px 18px; border-radius: 11px; cursor: pointer;
+    border: 1.5px solid var(--magenta); background: rgba(255,45,155,.1); color: #fff;
+    box-shadow: 0 0 16px rgba(255,45,155,.25); transition: filter .15s, box-shadow .15s;
+  }
+  .reveal-top:hover { filter: brightness(1.12); box-shadow: 0 0 26px rgba(255,45,155,.5); }
+  .reveal-top:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+  .song-qr { background: #fff; border-radius: 12px; padding: 12px; margin: 0 auto 22px; width: min(170px, 55%); }
+  .song-qr svg { display: block; width: 100%; height: auto; }
 
   .ask {
     margin-bottom: 22px; padding: 17px 19px;
@@ -492,7 +505,10 @@
     <p class="counter">Låt <b id="cur">–</b> av <b id="total">–</b></p>
 
     <div class="card">
-      <p class="tracknum" id="tracknum">–</p>
+      <div class="track-top">
+        <p class="tracknum" id="tracknum">–</p>
+        <button class="reveal-top" id="revealBtn">Visa facit</button>
+      </div>
       <p class="status" id="quizStatus"></p>
       <audio id="audio" controls preload="none"></audio>
 
@@ -505,8 +521,6 @@
           <li><span class="q">Vilket år släpptes originalet? <em>(valfri)</em></span><span class="p bonus">bonus</span></li>
         </ol>
       </div>
-
-      <button class="primary-btn" id="revealBtn">Visa facit</button>
 
       <div class="facit" id="facit">
         <div class="row">
@@ -577,8 +591,12 @@
     <div id="spotQuiz" hidden>
       <p class="counter">Låt <b id="spotCur">–</b> av <b id="spotTotal">–</b></p>
       <div class="card">
-        <p class="tracknum" id="spotNum">–</p>
+        <div class="track-top">
+          <p class="tracknum" id="spotNum">–</p>
+          <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
+        </div>
         <a class="primary-btn" id="spotOpen" target="_blank" rel="noopener">▶ Öppna i Spotify</a>
+        <div class="song-qr" id="spotTrackQr" hidden></div>
         <div class="ask">
           <h2>Fråga lagen</h2>
           <ol>
@@ -587,7 +605,6 @@
             <li><span class="q">Vilket år släpptes den? <em>(bonus)</em></span><span class="p bonus">bonus</span></li>
           </ol>
         </div>
-        <button class="primary-btn" id="spotRevealBtn">Visa facit</button>
         <div class="facit" id="spotFacit">
           <div class="row"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
           <div class="row"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
@@ -600,6 +617,7 @@
         <button id="spotNext">Nästa →</button>
       </nav>
       <div class="quiz-tools">
+        <button id="spotSongQrBtn">📱 Låt-QR</button>
         <button id="spotTeamQrBtn">📱 QR till lagen</button>
         <button id="spotNewList">⟳ Annan spellista</button>
       </div>
@@ -916,6 +934,7 @@ const SPOTIFY_SCOPES = 'playlist-read-private playlist-read-collaborative';
 const SP_TOKEN_KEY = 'bitster.spotify.token.v1';
 let spotQueue = [];
 let spotI = 0;
+let spotSongQrOn = false;
 
 function spRand(n) {
   const a = new Uint8Array(n); crypto.getRandomValues(a);
@@ -1098,6 +1117,7 @@ function renderSpot() {
   el('spotTotal').textContent = spotQueue.length;
   el('spotNum').textContent = String(spotI + 1).padStart(2, '0');
   el('spotOpen').href = t.url || 'https://open.spotify.com/';
+  if (spotSongQrOn && t.url) { el('spotTrackQr').hidden = false; qrInto(el('spotTrackQr'), t.url); } else el('spotTrackQr').hidden = true;
   el('spotArtist').textContent = t.artist || '—';
   el('spotTitle').textContent = t.title || '—';
   el('spotYear').textContent = t.year || '—';
@@ -1133,6 +1153,11 @@ el('spotRevealBtn').onclick = () => {
 el('spotPrev').onclick = () => { if (spotI > 0) { spotI--; renderSpot(); } };
 el('spotNext').onclick = () => { if (spotI < spotQueue.length - 1) { spotI++; renderSpot(); } };
 el('spotNewList').onclick = () => { el('spotUrl').value = ''; el('spotPickStatus').textContent = ''; spShow('pick'); };
+el('spotSongQrBtn').onclick = () => {
+  spotSongQrOn = !spotSongQrOn;
+  const box = el('spotTrackQr'), t = spotQueue[spotI];
+  if (spotSongQrOn && t && t.url) { box.hidden = false; qrInto(box, t.url); } else box.hidden = true;
+};
 
 el('spotRedir').textContent = spRedirect();
 el('spotCopyRedir').onclick = () => {
