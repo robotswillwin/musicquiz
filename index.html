@@ -6,244 +6,538 @@
 <title>Coverquiz</title>
 <style>
   :root {
-    --ink: #15140f;
-    --paper: #efe9dc;
-    --card: #fbf8f0;
-    --line: #d6cdb8;
-    --accent: #b4451f;       /* burnt vermilion */
-    --accent-ink: #fff5ec;
-    --muted: #8a8166;
-    --good: #4d6b2f;
-    --shadow: 0 1px 0 #fff inset, 0 18px 40px -22px rgba(21,20,15,.5);
+    --bg:        #07060d;
+    --ink:       #f4effe;
+    --muted:     #9a92c4;
+    --line:      rgba(255,255,255,.11);
+    --magenta:   #ff2d9b;
+    --magenta-2: #ff66bd;
+    --cyan:      #22e9ff;
+    --lime:      #5bff9d;
+    --card:      rgba(255,255,255,.038);
+    --card-line: rgba(255,255,255,.13);
+
+    --display: "Futura", "Avenir Next", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    --body:    "Avenir Next", "Helvetica Neue", system-ui, -apple-system, sans-serif;
+    --mono:    ui-monospace, "SF Mono", Menlo, monospace;
+
+    --chrome: conic-gradient(from 215deg,
+      #c9ccdb 0deg, #74768a 55deg, #f3f4fa 110deg, #6f7180 165deg,
+      #b3b6c6 215deg, #7c7e90 270deg, #eef0f7 320deg, #c9ccdb 360deg);
+
+    --glow-mag: 0 0 2px #fff, 0 0 14px rgba(255,45,155,.7), 0 0 34px rgba(255,45,155,.45);
+    --glow-cyan: 0 0 2px #fff, 0 0 14px rgba(34,233,255,.7), 0 0 32px rgba(34,233,255,.4);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--paper);
-    background-image:
-      radial-gradient(circle at 18% 12%, rgba(180,69,31,.05), transparent 60%),
-      radial-gradient(circle at 85% 80%, rgba(77,107,47,.05), transparent 55%);
+    background:
+      radial-gradient(1100px 560px at 10% -8%, rgba(255,45,155,.20), transparent 60%),
+      radial-gradient(1000px 720px at 102% 104%, rgba(34,233,255,.15), transparent 55%),
+      radial-gradient(800px 800px at 50% 125%, rgba(122,60,255,.16), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--ink);
-    font-family: "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+    font-family: var(--body);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 720px; margin: 0 auto; padding: clamp(20px, 5vw, 56px) 20px 80px; }
+  /* grain + faint scanline atmosphere */
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px);
+    mix-blend-mode: overlay; opacity: .5;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 740px; margin: 0 auto; padding: clamp(22px, 5vw, 58px) 20px 90px; }
+  [hidden] { display: none !important; }
 
-  header { margin-bottom: 28px; }
+  ::selection { background: var(--magenta); color: #fff; }
+  ::-webkit-scrollbar { width: 11px; }
+  ::-webkit-scrollbar-track { background: #0b0916; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(var(--magenta), var(--cyan)); border-radius: 20px; border: 3px solid #0b0916; }
+
+  /* ---------- header / speaker ---------- */
+  header { display: flex; align-items: center; gap: 22px; margin-bottom: 32px; animation: rise .6s ease both; }
+  .title-block { min-width: 0; }
   .kicker {
-    font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
-    letter-spacing: .28em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 0 0 10px;
+    font: 700 12px/1 var(--mono);
+    letter-spacing: .3em; text-transform: uppercase;
+    color: var(--cyan); text-shadow: 0 0 12px rgba(34,233,255,.5);
+    margin: 0 0 12px;
   }
   h1 {
-    font-size: clamp(38px, 9vw, 76px);
-    line-height: .92;
-    letter-spacing: -.02em;
-    margin: 0;
-    font-weight: 800;
+    font-family: var(--display);
+    font-size: clamp(40px, 9.5vw, 82px);
+    line-height: .9; letter-spacing: .01em; margin: 0;
+    font-weight: 700; color: #fff;
+    text-shadow: var(--glow-mag);
+    animation: flickerIn 1.3s steps(1, end) both;
   }
-  h1 em { font-style: italic; color: var(--accent); }
-  .sub { color: var(--muted); margin: 14px 0 0; max-width: 46ch; font-size: 16px; }
+  h1 em { font-style: italic; color: #eafdff; text-shadow: var(--glow-cyan); }
+  .sub { color: var(--muted); margin: 16px 0 0; max-width: 48ch; font-size: 16px; line-height: 1.5; }
+  .sub b { color: var(--ink); }
 
-  .counter {
-    font: 600 13px/1 ui-monospace, Menlo, monospace;
-    color: var(--muted);
-    letter-spacing: .12em;
-    margin: 30px 0 12px;
+  .speaker {
+    --spk: 92px;
+    width: var(--spk); height: var(--spk); flex: 0 0 auto;
+    border-radius: 50%; padding: 9%;
+    background: var(--chrome);
+    box-shadow:
+      inset 0 0 0 2px rgba(255,255,255,.28),
+      0 12px 30px rgba(0,0,0,.6),
+      0 0 34px rgba(255,45,155,.35),
+      0 0 64px rgba(34,233,255,.16);
+    animation: thump 3.6s ease-in-out infinite;
   }
-  .counter b { color: var(--ink); }
+  .speaker .cone {
+    display: block; width: 100%; height: 100%; border-radius: 50%; position: relative;
+    background: radial-gradient(circle at 50% 42%, #46414f 0 6%, #1b1824 30%, #07060c 70%, #120f1a 100%);
+    box-shadow: inset 0 0 16px rgba(0,0,0,.92), inset 0 2px 6px rgba(255,255,255,.06);
+  }
+  .speaker .cone::before {
+    content: ""; position: absolute; inset: 33%; border-radius: 50%;
+    background: var(--chrome);
+    box-shadow: 0 0 9px rgba(34,233,255,.55), inset 0 0 0 1px rgba(255,255,255,.35);
+  }
+  .speaker .cone::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 32% 24%, rgba(255,255,255,.22), transparent 42%);
+  }
 
-  .card {
+  /* ---------- setup ---------- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 9px; margin: 26px 0 16px; }
+  .toolbar button {
+    font: 700 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+    padding: 11px 14px; border-radius: 9px;
+    border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink);
+    cursor: pointer; transition: border-color .15s, box-shadow .15s, color .15s;
+  }
+  .toolbar button:hover { border-color: var(--cyan); color: #fff; box-shadow: 0 0 16px rgba(34,233,255,.25); }
+  .toolbar .spacer { flex: 1 1 auto; }
+  .toolbar .count { align-self: center; font: 700 13px/1 var(--mono); color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); }
+
+  .library { list-style: none; margin: 0; padding: 0; }
+  .lib-item {
+    display: grid; grid-template-columns: auto auto auto 1fr auto; align-items: center; gap: 13px;
+    padding: 11px 14px; margin-bottom: 9px;
+    border: 1px solid var(--line); border-radius: 13px;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: clamp(20px, 4vw, 32px);
+    transition: border-color .15s, box-shadow .15s, opacity .15s, transform .12s;
+  }
+  .lib-item:not(.on) { opacity: .5; }
+  .lib-item.on { border-color: rgba(255,45,155,.55); box-shadow: 0 0 22px -4px rgba(255,45,155,.5), inset 0 0 0 1px rgba(255,45,155,.15); }
+  .lib-check { width: 21px; height: 21px; accent-color: var(--magenta); cursor: pointer; }
+  .lib-pos { font: 800 13px/1 var(--mono); color: var(--magenta-2); width: 24px; text-align: right; font-variant-numeric: tabular-nums; }
+  .lib-item:not(.on) .lib-pos { color: var(--muted); }
+  .lib-play {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid var(--cyan); background: transparent; color: var(--cyan);
+    cursor: pointer; font-size: 13px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s, box-shadow .15s;
+  }
+  .lib-play:hover { box-shadow: 0 0 16px rgba(34,233,255,.5); }
+  .lib-play.playing { background: var(--magenta); border-color: var(--magenta); color: #fff; box-shadow: 0 0 20px rgba(255,45,155,.6); }
+  .lib-name { font-size: 15px; line-height: 1.3; word-break: break-word; }
+  .lib-move { display: inline-flex; gap: 5px; }
+  .lib-move button {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink);
+    cursor: pointer; font-size: 14px; line-height: 1; transition: border-color .15s, box-shadow .15s;
+  }
+  .lib-move button:hover:not(:disabled) { border-color: var(--cyan); box-shadow: 0 0 12px rgba(34,233,255,.3); }
+  .lib-move button:disabled { opacity: .22; cursor: default; }
+
+  .setup-actions { margin-top: 26px; }
+  .save-note { font-size: 13px; color: var(--muted); margin: 0 0 13px; }
+  .save-note b { color: var(--lime); }
+
+  /* ---------- quiz ---------- */
+  #setupView, #quizView { animation: rise .55s .06s ease both; }
+  .counter { font: 700 13px/1 var(--mono); color: var(--muted); letter-spacing: .14em; margin: 0 0 14px; }
+  .counter b { color: var(--cyan); text-shadow: 0 0 10px rgba(34,233,255,.4); }
+
+  .card, .all-facit {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022));
+    border: 1px solid var(--card-line); border-radius: 18px;
+    box-shadow: 0 26px 60px -26px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.07);
+    padding: clamp(22px, 4vw, 34px);
+    overflow: hidden;
+  }
+  .card::before, .all-facit::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--magenta), var(--cyan), transparent);
+    opacity: .9;
   }
 
   .tracknum {
-    font-size: clamp(64px, 18vw, 132px);
-    line-height: .8;
-    font-weight: 800;
-    letter-spacing: -.04em;
-    color: var(--ink);
-    margin: 0 0 6px;
+    font-family: var(--display); font-size: clamp(72px, 19vw, 148px);
+    line-height: .78; font-weight: 800; letter-spacing: -.03em; margin: 0 0 22px;
     font-variant-numeric: tabular-nums;
+    background: linear-gradient(177deg, #ffffff 4%, #d2d4ea 36%, #7d8099 51%, #c6c9e4 66%, #ffffff 96%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 7px rgba(0,0,0,.6)) drop-shadow(0 0 16px rgba(34,233,255,.12));
   }
-  .filename {
-    font: 500 13px/1 ui-monospace, Menlo, monospace;
-    color: var(--muted);
-    margin: 0 0 22px;
-    word-break: break-all;
-  }
+  .status { font: 500 13px/1.4 var(--mono); color: var(--muted); margin: 0 0 22px; word-break: break-word; }
+  .status:empty { display: none; }
+  .status .error { color: var(--magenta-2); font-weight: 700; }
 
-  audio { width: 100%; margin-bottom: 22px; }
+  audio { width: 100%; margin-bottom: 22px; border-radius: 10px; }
 
-  .reveal-btn {
-    width: 100%;
-    border: none;
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-family: inherit;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: .01em;
-    padding: 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform .08s ease, filter .15s ease;
+  .ask {
+    margin-bottom: 22px; padding: 17px 19px;
+    border: 1px dashed rgba(34,233,255,.4); border-radius: 13px;
+    background: rgba(34,233,255,.05);
   }
-  .reveal-btn:hover { filter: brightness(1.06); }
-  .reveal-btn:active { transform: translateY(1px); }
-  .reveal-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .ask h2 { font: 800 11px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 12px rgba(34,233,255,.45); margin: 0 0 11px; }
+  .ask ol { margin: 0; padding: 0; list-style: none; counter-reset: q; }
+  .ask li { counter-increment: q; display: flex; align-items: baseline; gap: 11px; padding: 6px 0; font-size: 16px; }
+  .ask li::before { content: counter(q) "."; font: 800 13px/1 var(--mono); color: var(--magenta-2); flex: 0 0 auto; }
+  .ask .q { flex: 1 1 auto; }
+  .ask .q em { color: var(--muted); font-style: italic; font-size: 13px; }
+  .ask .p { font: 800 11px/1 var(--mono); color: var(--magenta-2); flex: 0 0 auto; white-space: nowrap; padding-top: 2px; }
+  .ask .p.bonus { color: var(--lime); }
 
-  .facit {
-    margin-top: 22px;
-    border-top: 2px solid var(--ink);
-    padding-top: 4px;
-    display: none;
+  .primary-btn {
+    width: 100%; border: 1px solid rgba(255,255,255,.22);
+    background: linear-gradient(180deg, #ff52ad, #df1a82);
+    color: #fff; font-family: var(--display); font-size: 19px; font-weight: 700; letter-spacing: .02em;
+    padding: 17px; border-radius: 12px; cursor: pointer;
+    text-shadow: 0 1px 5px rgba(120,0,55,.5);
+    box-shadow: 0 0 24px rgba(255,45,155,.45), 0 10px 26px -10px rgba(255,45,155,.7), inset 0 1px 0 rgba(255,255,255,.35);
+    transition: transform .08s, box-shadow .18s, filter .18s;
   }
-  .facit.show { display: block; animation: drop .25s ease; }
-  @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .primary-btn:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 0 34px rgba(255,45,155,.65), 0 12px 30px -10px rgba(255,45,155,.8), inset 0 1px 0 rgba(255,255,255,.4); }
+  .primary-btn:active:not(:disabled) { transform: translateY(1px); }
+  .primary-btn:disabled { opacity: .4; cursor: default; box-shadow: none; filter: grayscale(.3); }
+  .primary-btn:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
 
-  .row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--line);
-  }
+  .facit { margin-top: 24px; border-top: 2px solid var(--magenta); box-shadow: 0 -10px 26px -16px rgba(255,45,155,.7); padding-top: 4px; display: none; }
+  .facit.show { display: block; animation: drop .3s ease; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 17px 0; border-bottom: 1px solid var(--line); }
   .row:last-child { border-bottom: none; }
-  .row .label {
-    font: 600 11px/1 ui-monospace, Menlo, monospace;
-    letter-spacing: .22em;
-    text-transform: uppercase;
-    color: var(--muted);
-    flex: 0 0 auto;
-    padding-top: 8px;
-  }
-  .row .val {
-    font-size: clamp(22px, 5vw, 30px);
-    font-weight: 700;
-    text-align: right;
-    line-height: 1.1;
-  }
-  .row.bonus .label { color: var(--good); }
-  .row.bonus .val { font-style: italic; font-weight: 600; }
-  .pts {
-    display: inline-block;
-    font: 700 12px/1 ui-monospace, Menlo, monospace;
-    color: var(--accent);
-    margin-left: 8px;
-    vertical-align: super;
-  }
-  .row.bonus .pts { color: var(--good); }
+  .row .label { font: 800 11px/1 var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--muted); flex: 0 0 auto; padding-top: 8px; }
+  .row .val { font-family: var(--display); font-size: clamp(23px, 5vw, 31px); font-weight: 700; text-align: right; line-height: 1.1; color: #fff; }
+  .row.bonus .label { color: var(--lime); }
+  .row.bonus .val { font-style: italic; font-weight: 600; color: #e9fff3; text-shadow: 0 0 16px rgba(91,255,157,.35); }
+  .pts { display: inline-block; font: 800 12px/1 var(--mono); color: var(--magenta-2); margin-left: 8px; vertical-align: super; }
+  .row.bonus .pts { color: var(--lime); }
 
-  nav {
-    display: flex;
-    gap: 12px;
-    margin-top: 26px;
-  }
+  nav { display: flex; gap: 12px; margin-top: 28px; }
   nav button {
-    flex: 1;
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 14px;
-    border-radius: 10px;
-    border: 1.5px solid var(--ink);
-    background: transparent;
-    color: var(--ink);
-    cursor: pointer;
-    transition: background .12s ease, color .12s ease;
+    flex: 1; font-family: var(--display); font-size: 16px; font-weight: 700; padding: 15px; border-radius: 12px;
+    border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink);
+    cursor: pointer; transition: border-color .15s, box-shadow .15s, color .15s;
   }
-  nav button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
-  nav button:disabled { opacity: .3; cursor: default; }
-  nav button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  nav button:hover:not(:disabled) { border-color: var(--cyan); color: #fff; box-shadow: 0 0 18px rgba(34,233,255,.3); }
+  nav button:disabled { opacity: .28; cursor: default; }
+  nav button:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
 
-  .error { color: var(--accent); font-weight: 600; }
+  .quiz-tools { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+  .quiz-tools button {
+    flex: 1; min-width: 160px; font: 700 14px/1 var(--mono); letter-spacing: .04em;
+    padding: 14px; border-radius: 12px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink);
+    cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  }
+  .quiz-tools button:hover { border-color: var(--magenta); box-shadow: 0 0 18px rgba(255,45,155,.3); }
 
+  .all-facit { margin-top: 18px; }
+  .all-facit h2 { font: 800 12px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); margin: 0 0 6px; }
+  .af-row { display: flex; gap: 15px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .af-row:last-child { border-bottom: none; }
+  .af-num { font: 800 13px/1 var(--mono); color: var(--cyan); flex: 0 0 auto; padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .af-body { font-size: 16px; line-height: 1.4; }
+  .af-body b { font-weight: 700; color: #fff; }
+  .af-body .arrow { color: var(--muted); }
+  .af-body i { display: block; color: var(--lime); font-style: italic; font-size: 14px; margin-top: 3px; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes flickerIn {
+    0%, 16% { opacity: .12; } 18% { opacity: 1; } 20% { opacity: .3; } 22% { opacity: 1; }
+    52% { opacity: .55; } 54% { opacity: 1; } 100% { opacity: 1; }
+  }
+  @keyframes thump {
+    0%, 100% { box-shadow: inset 0 0 0 2px rgba(255,255,255,.28), 0 12px 30px rgba(0,0,0,.6), 0 0 34px rgba(255,45,155,.35), 0 0 64px rgba(34,233,255,.16); }
+    50%      { box-shadow: inset 0 0 0 2px rgba(255,255,255,.28), 0 12px 30px rgba(0,0,0,.6), 0 0 46px rgba(255,45,155,.55), 0 0 92px rgba(34,233,255,.28); }
+  }
+
+  @media (max-width: 520px) {
+    header { gap: 16px; }
+    .speaker { --spk: 66px; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .facit.show { animation: none; }
+    *, *::before, *::after { animation: none !important; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <p class="kicker">Spelledare · facit nedan</p>
-    <h1>Vem tolkar <em>vem?</em></h1>
-    <p class="sub">Spela låten. Lagen gissar tolkande artist och originalartist — plus originalets titel för bonuspoäng. Fäll ut facit när alla svarat.</p>
+    <div class="speaker" aria-hidden="true"><span class="cone"></span></div>
+    <div class="title-block">
+      <p class="kicker">Spelledare · facit nedan</p>
+      <h1>Vem tolkar <em>vem?</em></h1>
+    </div>
   </header>
 
-  <p class="counter">Låt <b id="cur">–</b> av <b id="total">–</b></p>
+  <!-- ============ SETUP ============ -->
+  <section id="setupView">
+    <p class="sub">Välj vilka låtar som ska vara med och i vilken ordning. Förhandslyssna med ▶. Valet sparas automatiskt i den här webbläsaren — tryck <b>Starta quiz</b> när du är klar.</p>
 
-  <div class="card" id="card">
-    <p class="tracknum" id="tracknum">–</p>
-    <p class="filename" id="filename">Laddar…</p>
-    <audio id="audio" controls preload="none"></audio>
+    <div class="toolbar">
+      <button id="selectAll">Markera alla</button>
+      <button id="selectNone">Rensa</button>
+      <button id="shuffle">Blanda ordning</button>
+      <span class="spacer"></span>
+      <span class="count" id="selCount">–</span>
+    </div>
 
-    <button class="reveal-btn" id="revealBtn">Visa facit</button>
+    <ol class="library" id="library"></ol>
+    <p class="status" id="setupStatus">Laddar bibliotek…</p>
 
-    <div class="facit" id="facit">
-      <div class="row">
-        <span class="label">Tolkare<span class="pts">1p</span></span>
-        <span class="val" id="tolkare"></span>
+    <div class="setup-actions">
+      <p class="save-note" id="saveNote">Valet sparas automatiskt.</p>
+      <button class="primary-btn" id="startBtn" disabled>Starta quiz →</button>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="quizView" hidden>
+    <p class="counter">Låt <b id="cur">–</b> av <b id="total">–</b></p>
+
+    <div class="card">
+      <p class="tracknum" id="tracknum">–</p>
+      <p class="status" id="quizStatus"></p>
+      <audio id="audio" controls preload="none"></audio>
+
+      <div class="ask">
+        <h2>Fråga lagen</h2>
+        <ol>
+          <li><span class="q">Vilken är det som sjunger?</span><span class="p">1p</span></li>
+          <li><span class="q">Vilken har skrivit originalet?</span><span class="p">1p</span></li>
+          <li><span class="q">Vad heter originallåten?</span><span class="p">+1</span></li>
+          <li><span class="q">Vilket år släpptes originalet? <em>(valfri)</em></span><span class="p bonus">bonus</span></li>
+        </ol>
       </div>
-      <div class="row">
-        <span class="label">Original<span class="pts">1p</span></span>
-        <span class="val" id="original"></span>
-      </div>
-      <div class="row bonus">
-        <span class="label">Originallåt<span class="pts">+1</span></span>
-        <span class="val" id="originallat"></span>
+
+      <button class="primary-btn" id="revealBtn">Visa facit</button>
+
+      <div class="facit" id="facit">
+        <div class="row">
+          <span class="label">Tolkare<span class="pts">1p</span></span>
+          <span class="val" id="tolkare"></span>
+        </div>
+        <div class="row">
+          <span class="label">Original<span class="pts">1p</span></span>
+          <span class="val" id="original"></span>
+        </div>
+        <div class="row bonus">
+          <span class="label">Originallåt<span class="pts">+1</span></span>
+          <span class="val" id="originallat"></span>
+        </div>
+        <div class="row bonus">
+          <span class="label">Originalets år<span class="pts">bonus</span></span>
+          <span class="val" id="ar"></span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <nav>
-    <button id="prev">← Föregående</button>
-    <button id="next">Nästa →</button>
-  </nav>
+    <nav>
+      <button id="prev">← Föregående</button>
+      <button id="next">Nästa →</button>
+    </nav>
+
+    <div class="quiz-tools">
+      <button id="allFacitBtn">Visa allt facit</button>
+      <button id="backToSetup">⚙ Ändra låtar</button>
+    </div>
+
+    <div class="all-facit" id="allFacit" hidden>
+      <h2>Allt facit</h2>
+      <div id="allFacitBody"></div>
+    </div>
+  </section>
 </div>
 
 <script>
-let tracks = [];
-let i = 0;
-
 const el = id => document.getElementById(id);
+const LS_KEY = 'coverquiz.setup.v1';
 
+let library = [];   // full list from playlist.json: {fil, tolkare, original, originallat, ar}
+let order   = [];   // setup state in display order: {fil, on}
+let queue   = [];   // selected tracks for the running quiz, in order
+let i       = 0;    // index into queue
+
+const preview = new Audio();
+let previewFil = null;
+
+const escapeHtml = s => String(s).replace(/[&<>"]/g,
+  c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const niceName = fil => fil.replace(/^audio\//, '').replace(/\.(mp3|ogg)$/i, '');
+const metaFor  = fil => library.find(t => t.fil === fil) || { fil };
+
+/* ---------- load + persistence ---------- */
 async function load() {
   try {
     const res = await fetch('playlist.json', { cache: 'no-store' });
     if (!res.ok) throw new Error('playlist.json hittades inte (' + res.status + ')');
-    tracks = await res.json();
-    if (!Array.isArray(tracks) || tracks.length === 0) throw new Error('playlist.json är tom');
-    el('total').textContent = tracks.length;
-    render();
+    library = await res.json();
+    if (!Array.isArray(library) || library.length === 0) throw new Error('playlist.json är tom');
+    order = mergeSaved(library, loadSaved());
+    el('setupStatus').textContent = '';
+    renderLibrary();
   } catch (e) {
-    el('filename').innerHTML = '<span class="error">Fel: ' + e.message + '</span>';
-    el('revealBtn').disabled = true;
+    el('setupStatus').innerHTML = '<span class="error">Fel: ' + escapeHtml(e.message) + '</span>';
   }
 }
 
-function render() {
-  const t = tracks[i];
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch { return []; }
+}
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(order)); } catch {}
+}
+
+// Reconcile saved order with the current library: keep saved order/ticks for files
+// that still exist, append any new files, drop files that are gone. First-ever
+// visit (no saved state) defaults everything ON so it works out of the box.
+function mergeSaved(lib, saved) {
+  const present = new Set(lib.map(t => t.fil));
+  const seen = new Set();
+  const result = [];
+  for (const s of saved) {
+    if (present.has(s.fil) && !seen.has(s.fil)) {
+      result.push({ fil: s.fil, on: !!s.on });
+      seen.add(s.fil);
+    }
+  }
+  const firstVisit = saved.length === 0;
+  for (const t of lib) {
+    if (!seen.has(t.fil)) result.push({ fil: t.fil, on: firstVisit });
+  }
+  return result;
+}
+
+/* ---------- setup view ---------- */
+function renderLibrary() {
+  const root = el('library');
+  root.innerHTML = '';
+  let pos = 0;
+  order.forEach((item, idx) => {
+    const p = item.on ? ++pos : null;
+    const li = document.createElement('li');
+    li.className = 'lib-item' + (item.on ? ' on' : '');
+    li.dataset.fil = item.fil;
+    li.innerHTML =
+      '<input type="checkbox" class="lib-check" ' + (item.on ? 'checked' : '') + ' aria-label="Inkludera i quiz">' +
+      '<span class="lib-pos">' + (p ? String(p).padStart(2, '0') : '–') + '</span>' +
+      '<button class="lib-play" aria-label="Förhandslyssna">▶</button>' +
+      '<span class="lib-name">' + escapeHtml(niceName(item.fil)) + '</span>' +
+      '<span class="lib-move">' +
+        '<button class="mv-up" aria-label="Flytta upp" ' + (idx === 0 ? 'disabled' : '') + '>↑</button>' +
+        '<button class="mv-down" aria-label="Flytta ned" ' + (idx === order.length - 1 ? 'disabled' : '') + '>↓</button>' +
+      '</span>';
+    li.querySelector('.lib-check').onchange = e => {
+      item.on = e.target.checked; saveState(); renderLibrary();
+    };
+    li.querySelector('.lib-play').onclick = () => togglePreview(item.fil);
+    li.querySelector('.mv-up').onclick   = () => move(idx, -1);
+    li.querySelector('.mv-down').onclick = () => move(idx, +1);
+    root.appendChild(li);
+  });
+  updatePlayButtons();
+  updateCount();
+}
+
+function move(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= order.length) return;
+  [order[idx], order[j]] = [order[j], order[idx]];
+  saveState();
+  renderLibrary();
+}
+
+function selected() { return order.filter(o => o.on); }
+
+function updateCount() {
+  const n = selected().length;
+  el('selCount').textContent = n + (n === 1 ? ' låt vald' : ' låtar valda');
+  el('startBtn').disabled = n === 0;
+}
+
+el('selectAll').onclick  = () => { order.forEach(o => o.on = true);  saveState(); renderLibrary(); };
+el('selectNone').onclick = () => { order.forEach(o => o.on = false); saveState(); renderLibrary(); };
+el('shuffle').onclick    = () => {
+  for (let k = order.length - 1; k > 0; k--) {
+    const r = Math.floor(Math.random() * (k + 1));
+    [order[k], order[r]] = [order[r], order[k]];
+  }
+  saveState(); renderLibrary();
+};
+
+/* ---------- preview ---------- */
+function togglePreview(fil) {
+  if (previewFil === fil && !preview.paused) { preview.pause(); return; }
+  preview.src = fil;
+  previewFil = fil;
+  preview.play().catch(() => {});
+}
+function stopPreview() { preview.pause(); previewFil = null; updatePlayButtons(); }
+preview.onplay = preview.onpause = preview.onended = updatePlayButtons;
+function updatePlayButtons() {
+  document.querySelectorAll('.lib-item').forEach(li => {
+    const playing = li.dataset.fil === previewFil && !preview.paused;
+    const b = li.querySelector('.lib-play');
+    b.textContent = playing ? '❚❚' : '▶';
+    b.classList.toggle('playing', playing);
+  });
+}
+
+/* ---------- view switching ---------- */
+function showSetup() {
+  el('quizView').hidden = true;
+  el('setupView').hidden = false;
+  el('audio').pause();
+}
+function showQuiz() {
+  el('setupView').hidden = true;
+  el('quizView').hidden = false;
+}
+
+el('startBtn').onclick = () => {
+  queue = selected().map(o => metaFor(o.fil));
+  if (queue.length === 0) return;
+  i = 0;
+  stopPreview();
+  hideAllFacit();
+  showQuiz();
+  renderTrack();
+  window.scrollTo({ top: 0 });
+};
+el('backToSetup').onclick = () => { el('audio').pause(); showSetup(); window.scrollTo({ top: 0 }); };
+
+/* ---------- quiz view ---------- */
+function renderTrack() {
+  const t = queue[i];
   el('cur').textContent = i + 1;
+  el('total').textContent = queue.length;
   el('tracknum').textContent = String(i + 1).padStart(2, '0');
-  el('filename').textContent = t.fil;
+  el('quizStatus').textContent = '';
   el('audio').src = t.fil;
   el('tolkare').textContent = t.tolkare || '—';
   el('original').textContent = t.original || '—';
   el('originallat').textContent = t.originallat || '—';
+  el('ar').textContent = t.ar || '—';
   el('facit').classList.remove('show');
   el('revealBtn').textContent = 'Visa facit';
   el('prev').disabled = i === 0;
-  el('next').disabled = i === tracks.length - 1;
+  el('next').disabled = i === queue.length - 1;
 }
 
 el('revealBtn').onclick = () => {
@@ -251,12 +545,37 @@ el('revealBtn').onclick = () => {
   f.classList.toggle('show');
   el('revealBtn').textContent = f.classList.contains('show') ? 'Dölj facit' : 'Visa facit';
 };
-el('prev').onclick = () => { if (i > 0) { i--; render(); } };
-el('next').onclick = () => { if (i < tracks.length - 1) { i++; render(); } };
+el('prev').onclick = () => { if (i > 0) { i--; renderTrack(); } };
+el('next').onclick = () => { if (i < queue.length - 1) { i++; renderTrack(); } };
 
+/* ---------- all facit ---------- */
+function renderAllFacit() {
+  el('allFacitBody').innerHTML = queue.map((t, n) =>
+    '<div class="af-row">' +
+      '<span class="af-num">' + String(n + 1).padStart(2, '0') + '</span>' +
+      '<span class="af-body">' +
+        '<b>' + escapeHtml(t.tolkare || '—') + '</b> ' +
+        '<span class="arrow">tolkar</span> ' +
+        escapeHtml(t.original || '—') +
+        '<i>' + escapeHtml(t.originallat || '—') + (t.ar ? ' (' + escapeHtml(t.ar) + ')' : '') + '</i>' +
+      '</span>' +
+    '</div>').join('');
+}
+function hideAllFacit() {
+  el('allFacit').hidden = true;
+  el('allFacitBtn').textContent = 'Visa allt facit';
+}
+el('allFacitBtn').onclick = () => {
+  const box = el('allFacit');
+  if (box.hidden) { renderAllFacit(); box.hidden = false; el('allFacitBtn').textContent = 'Dölj allt facit'; }
+  else { hideAllFacit(); }
+};
+
+/* ---------- keyboard (quiz only) ---------- */
 document.addEventListener('keydown', e => {
+  if (el('quizView').hidden) return;
   if (e.key === 'ArrowRight') el('next').click();
-  if (e.key === 'ArrowLeft') el('prev').click();
+  if (e.key === 'ArrowLeft')  el('prev').click();
   if (e.key === ' ' && e.target === document.body) { e.preventDefault(); el('revealBtn').click(); }
 });
 
