@@ -944,7 +944,9 @@ async function spLoadTracks(id) {
       }
       const data = await res.json();
       for (const it of (data.items || [])) {
-        const t = (it && it.track) || it; if (!t || !t.name) continue;
+        // /tracks: { track: {…} }  •  /items: track-fälten ligger platt och "track" är en boolean
+        const t = (it && typeof it.track === 'object' && it.track) ? it.track : it;
+        if (!t || !t.name || it.episode === true) continue;
         out.push({
           title: t.name || '',
           artist: (t.artists || []).map(a => a.name).join(', '),
@@ -958,15 +960,16 @@ async function spLoadTracks(id) {
     return out;
   }
 
+  // /items funkar för appar där /tracks är spärrad (403) — testa /items först, /tracks som reserv
   try {
-    return await via('tracks');
+    return await via('items');
   } catch (e) {
     if (e.status === 401) throw new Error('Sessionen gick ut — logga in igen.');
-    if (e.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?).');
-    if (e.status === 403) {
-      try { return await via('items'); }                       // /tracks spärrad? testa /items
+    if (e.status === 403 || e.status === 404) {
+      try { return await via('tracks'); }
       catch (e2) {
-        throw new Error('Spotify nekar (403' + (e2.why ? ' – ' + e2.why : '') + ') även på /items. Behörigheter finns (' + spScope() + '), så detta är troligen en Spotify-spärr för appar i utvecklingsläge — inte något vi kan koda runt.');
+        if (e2.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?).');
+        throw new Error('Spotify nekar åtkomst (' + (e2.status || '?') + (e2.why ? ' – ' + e2.why : '') + ').');
       }
     }
     throw new Error('Kunde inte hämta låtarna (' + (e.status || '?') + (e.why ? ' – ' + e.why : '') + ').');
