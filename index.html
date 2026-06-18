@@ -3,8 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coverquiz</title>
+<title>Bitster — Vem tolkar vem?</title>
 <style>
+  @font-face {
+    font-family: "Monoton";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/monoton.woff2") format("woff2");
+  }
   :root {
     --bg:        #07060d;
     --ink:       #f4effe;
@@ -17,6 +24,7 @@
     --card:      rgba(255,255,255,.038);
     --card-line: rgba(255,255,255,.13);
 
+    --neon:    "Monoton", "Futura", "Avenir Next", cursive;
     --display: "Futura", "Avenir Next", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
     --body:    "Avenir Next", "Helvetica Neue", system-ui, -apple-system, sans-serif;
     --mono:    ui-monospace, "SF Mono", Menlo, monospace;
@@ -68,14 +76,75 @@
     margin: 0 0 12px;
   }
   h1 {
-    font-family: var(--display);
-    font-size: clamp(40px, 9.5vw, 82px);
-    line-height: .9; letter-spacing: .01em; margin: 0;
-    font-weight: 700; color: #fff;
+    font-family: var(--neon);
+    font-size: clamp(36px, 8.5vw, 72px);
+    line-height: 1.08; letter-spacing: .02em; margin: 0;
+    font-weight: 400; color: #fff; text-transform: uppercase;
     text-shadow: var(--glow-mag);
     animation: flickerIn 1.3s steps(1, end) both;
   }
-  h1 em { font-style: italic; color: #eafdff; text-shadow: var(--glow-cyan); }
+  .section {
+    font-family: var(--display);
+    font-size: clamp(20px, 4.6vw, 30px);
+    font-weight: 600; letter-spacing: .01em; margin: 11px 0 0; color: #fff;
+    text-shadow: 0 0 14px rgba(255,255,255,.12);
+  }
+  .section em { font-style: italic; color: #eafdff; text-shadow: var(--glow-cyan); }
+
+  /* ---------- intro / lägesval ---------- */
+  h1 { transition: font-size .45s cubic-bezier(.2,.7,.2,1); }
+  .speaker { transition: width .45s cubic-bezier(.2,.7,.2,1), height .45s cubic-bezier(.2,.7,.2,1), padding .45s cubic-bezier(.2,.7,.2,1); }
+  body[data-view="intro"] .speaker { --spk: 116px; }
+  body[data-view="intro"] h1 { font-size: clamp(44px, 11vw, 88px); }
+
+  .intro-lead { font: 800 12px/1 var(--mono); letter-spacing: .32em; text-transform: uppercase; color: var(--muted); margin: 6px 0 18px; animation: rise .5s .1s ease both; }
+  .modes { display: flex; flex-direction: column; gap: 14px; }
+  .mode-card {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: clamp(14px, 3vw, 22px);
+    width: 100%; text-align: left; cursor: pointer; color: var(--ink); font-family: var(--body);
+    padding: clamp(20px, 3.4vw, 30px); border-radius: 18px; border: 1px solid var(--card-line);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    box-shadow: 0 22px 50px -28px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.07);
+    position: relative; overflow: hidden;
+    animation: rise .55s .18s ease both; transition: transform .14s, box-shadow .2s, border-color .2s;
+  }
+  .mode-card::before {
+    content: ""; position: absolute; inset: 0; border-radius: 18px; padding: 1px; pointer-events: none;
+    background: linear-gradient(120deg, var(--magenta), transparent 42%, transparent 58%, var(--cyan));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+    opacity: 0; transition: opacity .2s;
+  }
+  .mode-card:hover { transform: translateY(-3px); border-color: transparent; box-shadow: 0 30px 60px -26px rgba(0,0,0,.9), 0 0 42px -6px rgba(255,45,155,.5); }
+  .mode-card:hover::before { opacity: 1; }
+  .mode-card:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+  .mode-num { font: 400 clamp(24px,5.5vw,40px)/1 var(--neon); color: var(--magenta-2); text-shadow: 0 0 14px rgba(255,45,155,.5); }
+  .mode-body { min-width: 0; }
+  .mode-name { display: block; font-family: var(--display); font-weight: 800; font-size: clamp(24px,5.4vw,36px); color: #fff; text-shadow: var(--glow-mag); }
+  .mode-name em { font-style: italic; color: #eafdff; text-shadow: var(--glow-cyan); }
+  .mode-desc { display: block; margin-top: 7px; color: var(--muted); font-size: 15px; line-height: 1.4; max-width: 42ch; }
+  .mode-go { font-size: 22px; color: var(--magenta-2); flex: 0 0 auto; filter: drop-shadow(0 0 10px rgba(255,45,155,.6)); transition: transform .15s; }
+  .mode-card:hover .mode-go { transform: translateX(4px); }
+  .mode-card.ghost { cursor: default; opacity: .4; animation-delay: .26s; }
+  .mode-card.ghost:hover { transform: none; border-color: var(--card-line); box-shadow: 0 22px 50px -28px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.07); }
+  .mode-card.ghost:hover::before { opacity: 0; }
+  .mode-card.ghost .mode-name { text-shadow: none; color: var(--muted); }
+  .mode-card.ghost .mode-go { color: var(--muted); filter: none; }
+
+  .eq { display: flex; align-items: flex-end; gap: 5px; height: 44px; margin: 30px 0 0; opacity: .75; animation: rise .6s .3s ease both; }
+  .eq i { flex: 1; border-radius: 3px; height: 28%; background: linear-gradient(var(--cyan), var(--magenta)); animation: eq 1.1s ease-in-out infinite; }
+  .eq i:nth-child(2n) { animation-duration: .9s; }
+  .eq i:nth-child(3n) { animation-duration: 1.4s; }
+  .eq i:nth-child(4n) { animation-duration: .72s; }
+  .eq i:nth-child(5n) { animation-duration: 1.25s; }
+  .eq i:nth-child(2){animation-delay:-.3s} .eq i:nth-child(3){animation-delay:-.6s} .eq i:nth-child(4){animation-delay:-.15s}
+  .eq i:nth-child(5){animation-delay:-.9s} .eq i:nth-child(6){animation-delay:-.45s} .eq i:nth-child(7){animation-delay:-.75s}
+  .eq i:nth-child(8){animation-delay:-.2s} .eq i:nth-child(9){animation-delay:-.55s} .eq i:nth-child(11){animation-delay:-.35s}
+  .eq i:nth-child(13){animation-delay:-.8s}
+  @keyframes eq { 0%,100% { height: 22%; } 50% { height: 100%; } }
+
+  .back-link { display: inline-block; margin: 0 0 18px; padding: 7px 12px 7px 6px; font: 700 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; background: transparent; border: 0; color: var(--muted); cursor: pointer; border-radius: 8px; transition: color .15s, transform .12s; }
+  .back-link:hover { color: var(--cyan); transform: translateX(-3px); }
   .sub { color: var(--muted); margin: 16px 0 0; max-width: 48ch; font-size: 16px; line-height: 1.5; }
   .sub b { color: var(--ink); }
 
@@ -140,12 +209,16 @@
   }
   .lib-play:hover { box-shadow: 0 0 16px rgba(34,233,255,.5); }
   .lib-play.playing { background: var(--magenta); border-color: var(--magenta); color: #fff; box-shadow: 0 0 20px rgba(255,45,155,.6); }
-  .lib-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .lib-name { font-size: 15px; line-height: 1.3; word-break: break-word; }
-  .lib-answer { font-size: 13px; line-height: 1.35; color: var(--muted); word-break: break-word; }
-  .lib-answer b { color: var(--magenta-2); font-weight: 700; }
-  .lib-answer .arrow { color: var(--muted); font-style: normal; }
-  .lib-answer i { color: var(--lime); font-style: italic; }
+  .lib-text { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .lib-name { font-size: 14px; line-height: 1.3; color: var(--muted); overflow-wrap: anywhere; }
+  .lib-answer { display: grid; grid-template-columns: auto 1fr; gap: 3px 11px; align-items: baseline; }
+  .la-row { display: contents; }
+  .la-k { font: 800 9px/1.5 var(--mono); letter-spacing: .13em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .la-v { min-width: 0; font-size: 14.5px; line-height: 1.25; overflow-wrap: anywhere; }
+  .la-v.cover { color: var(--magenta-2); font-weight: 700; }
+  .la-v.orig  { color: var(--cyan);      font-weight: 700; }
+  .la-v.song  { color: var(--lime); font-style: italic; }
+  .la-v.song em { font-style: normal; color: var(--muted); font-size: 12.5px; margin-left: 6px; }
   .lib-move { display: inline-flex; gap: 5px; }
   .lib-move button {
     width: 32px; height: 32px; border-radius: 8px;
@@ -179,12 +252,9 @@
   }
 
   .tracknum {
-    font-family: var(--display); font-size: clamp(72px, 19vw, 148px);
-    line-height: .78; font-weight: 800; letter-spacing: -.03em; margin: 0 0 22px;
-    font-variant-numeric: tabular-nums;
-    background: linear-gradient(177deg, #ffffff 4%, #d2d4ea 36%, #7d8099 51%, #c6c9e4 66%, #ffffff 96%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 3px 7px rgba(0,0,0,.6)) drop-shadow(0 0 16px rgba(34,233,255,.12));
+    font-family: var(--neon); font-size: clamp(56px, 14vw, 112px);
+    line-height: 1.06; font-weight: 400; letter-spacing: .03em; margin: 0 0 24px;
+    color: #fff; text-shadow: 0 0 2px #fff, 0 0 18px rgba(255,45,155,.6), 0 0 44px rgba(34,233,255,.35);
   }
   .status { font: 500 13px/1.4 var(--mono); color: var(--muted); margin: 0 0 22px; word-break: break-word; }
   .status:empty { display: none; }
@@ -230,8 +300,8 @@
   .row .val { font-family: var(--display); font-size: clamp(23px, 5vw, 31px); font-weight: 700; text-align: right; line-height: 1.1; color: #fff; }
   .row.bonus .label { color: var(--lime); }
   .row.bonus .val { font-style: italic; font-weight: 600; color: #e9fff3; text-shadow: 0 0 16px rgba(91,255,157,.35); }
-  .pts { display: inline-block; font: 800 12px/1 var(--mono); color: var(--magenta-2); margin-left: 8px; vertical-align: super; }
-  .row.bonus .pts { color: var(--lime); }
+  .pts { display: inline-block; font: 800 10px/1 var(--mono); color: var(--magenta-2); margin-left: 8px; vertical-align: middle; padding: 3px 7px; border: 1px solid rgba(255,45,155,.45); border-radius: 999px; }
+  .row.bonus .pts { color: var(--lime); border-color: rgba(91,255,157,.45); }
 
   nav { display: flex; gap: 12px; margin-top: 28px; }
   nav button {
@@ -253,13 +323,19 @@
 
   .all-facit { margin-top: 18px; }
   .all-facit h2 { font: 800 12px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: var(--magenta-2); text-shadow: 0 0 12px rgba(255,45,155,.4); margin: 0 0 6px; }
-  .af-row { display: flex; gap: 15px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .af-row { display: flex; gap: 16px; align-items: flex-start; padding: 18px 0; border-bottom: 1px solid var(--line); }
   .af-row:last-child { border-bottom: none; }
-  .af-num { font: 800 13px/1 var(--mono); color: var(--cyan); flex: 0 0 auto; padding-top: 2px; font-variant-numeric: tabular-nums; }
-  .af-body { font-size: 16px; line-height: 1.4; }
-  .af-body b { font-weight: 700; color: #fff; }
-  .af-body .arrow { color: var(--muted); }
-  .af-body i { display: block; color: var(--lime); font-style: italic; font-size: 14px; margin-top: 3px; }
+  .af-num { font: 400 clamp(22px,5vw,32px)/1 var(--neon); color: var(--cyan); flex: 0 0 auto; text-shadow: 0 0 12px rgba(34,233,255,.5); }
+  .af-lines { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+  .af-line { display: flex; align-items: baseline; gap: 10px; }
+  .af-k { flex: 0 0 76px; font: 800 10px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .af-v { flex: 1 1 auto; min-width: 0; font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
+  .af-v.cover { color: var(--magenta-2); font-weight: 700; }
+  .af-v.orig  { color: var(--cyan); font-weight: 700; }
+  .af-v.song  { color: var(--lime); font-style: italic; }
+  .af-v.year  { color: #eafff3; }
+  .af-p { flex: 0 0 auto; margin-left: auto; align-self: center; font: 800 10px/1 var(--mono); color: var(--magenta-2); white-space: nowrap; padding: 4px 9px; border: 1px solid rgba(255,45,155,.45); border-radius: 999px; }
+  .af-p.bonus { color: var(--lime); border-color: rgba(91,255,157,.45); }
 
   @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @keyframes flickerIn {
@@ -275,23 +351,59 @@
     header { gap: 16px; }
     .speaker { --spk: 66px; }
   }
+  @media (max-width: 560px) {
+    .lib-item { gap: 9px; padding: 10px 11px; }
+    .lib-play { width: 32px; height: 32px; }
+    .lib-move { flex-direction: column; gap: 5px; }
+    .lib-move button { width: 30px; height: 27px; }
+    .lib-answer { display: block; }
+    .la-row { display: block; margin-bottom: 8px; }
+    .la-row:last-child { margin-bottom: 0; }
+    .la-k { display: block; margin-bottom: 2px; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 </style>
 </head>
-<body>
+<body data-view="intro">
 <div class="wrap">
   <header>
     <div class="speaker" aria-hidden="true"><span class="cone"></span></div>
     <div class="title-block">
-      <p class="kicker">Spelledare · facit nedan</p>
-      <h1>Vem tolkar <em>vem?</em></h1>
+      <p class="kicker">Musikquiz · spelledare</p>
+      <h1>Bitster</h1>
+      <p class="section" hidden>Vem tolkar <em>vem?</em></p>
     </div>
   </header>
 
+  <!-- ============ INTRO ============ -->
+  <section id="introView">
+    <p class="intro-lead">Välj spelläge</p>
+    <div class="modes">
+      <button class="mode-card" id="modeVTV">
+        <span class="mode-num">01</span>
+        <span class="mode-body">
+          <span class="mode-name">Vem tolkar <em>vem?</em></span>
+          <span class="mode-desc">Spela en AI-cover — lagen gissar vem som sjunger, originalartisten och originallåten.</span>
+        </span>
+        <span class="mode-go" aria-hidden="true">▶</span>
+      </button>
+      <div class="mode-card ghost" aria-disabled="true">
+        <span class="mode-num">02</span>
+        <span class="mode-body">
+          <span class="mode-name">Fler lägen</span>
+          <span class="mode-desc">Kommer snart.</span>
+        </span>
+        <span class="mode-go" aria-hidden="true">+</span>
+      </div>
+    </div>
+    <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
   <!-- ============ SETUP ============ -->
-  <section id="setupView">
+  <section id="setupView" hidden>
+    <button class="back-link" id="backToIntro">‹ Bitster-meny</button>
     <p class="sub">Välj vilka låtar som ska vara med och i vilken ordning. Förhandslyssna med ▶. Valet sparas automatiskt i den här webbläsaren — tryck <b>Starta quiz</b> när du är klar.</p>
 
     <div class="toolbar">
@@ -371,7 +483,7 @@
 
 <script>
 const el = id => document.getElementById(id);
-const LS_KEY = 'coverquiz.setup.v1';
+const LS_KEY = 'bitster.vemtolkarvem.v1';
 
 let library = [];   // full list from playlist.json: {fil, tolkare, original, originallat, ar}
 let order   = [];   // setup state in display order: {fil, on}
@@ -386,15 +498,23 @@ const escapeHtml = s => String(s).replace(/[&<>"]/g,
 const niceName = fil => fil.replace(/^audio\//, '').replace(/\.(mp3|ogg)$/i, '');
 const metaFor  = fil => library.find(t => t.fil === fil) || { fil };
 
-// Setup-rad: visa facit (de korrekta svaren) om något fält är ifyllt, annars inget.
+// Setup-rad: visa facit (de korrekta svaren) som en tydlig, etikettmärkt tabell.
+// Varje ifyllt fält blir en egen rad; tomma fält hoppas över.
 function answerLine(t) {
   const a = (t.tolkare || '').trim(), b = (t.original || '').trim(),
         c = (t.originallat || '').trim(), y = (t.ar || '').trim();
   if (!a && !b && !c && !y) return '';
-  let s = '';
-  if (a || b) s += '<b>' + escapeHtml(a || '?') + '</b> <span class="arrow">tolkar</span> ' + escapeHtml(b || '?');
-  if (c || y) s += (s ? ' · ' : '') + '<i>' + escapeHtml(c || '?') + (y ? ' (' + escapeHtml(y) + ')' : '') + '</i>';
-  return s;
+  const row = (k, v, cls) =>
+    '<span class="la-row"><span class="la-k">' + k + '</span><span class="la-v ' + cls + '">' + v + '</span></span>';
+  let h = '';
+  if (a) h += row('Tolkare', escapeHtml(a), 'cover');
+  if (b) h += row('Original', escapeHtml(b), 'orig');
+  if (c || y) {
+    let song = c ? escapeHtml(c) : '';
+    if (y) song += (song ? ' ' : '') + '<em>' + escapeHtml(y) + '</em>';
+    h += row('Låt', song, 'song');
+  }
+  return h;
 }
 
 /* ---------- load + persistence ---------- */
@@ -413,8 +533,11 @@ async function load() {
 }
 
 function loadSaved() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
-  catch { return []; }
+  try {
+    let raw = localStorage.getItem(LS_KEY);
+    if (raw == null) raw = localStorage.getItem('coverquiz.setup.v1'); // migrera ev. äldre val
+    return JSON.parse(raw) || [];
+  } catch { return []; }
 }
 function saveState() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(order)); } catch {}
@@ -520,15 +643,19 @@ function updatePlayButtons() {
 }
 
 /* ---------- view switching ---------- */
-function showSetup() {
-  el('quizView').hidden = true;
-  el('setupView').hidden = false;
-  el('audio').pause();
+function setView(name) {
+  el('introView').hidden = name !== 'intro';
+  el('setupView').hidden = name !== 'setup';
+  el('quizView').hidden  = name !== 'quiz';
+  document.querySelector('.section').hidden = name === 'intro';
+  document.body.setAttribute('data-view', name);
+  if (name !== 'quiz')  el('audio').pause();
+  if (name !== 'setup') stopPreview();
+  window.scrollTo({ top: 0 });
 }
-function showQuiz() {
-  el('setupView').hidden = true;
-  el('quizView').hidden = false;
-}
+function showIntro() { setView('intro'); }
+function showSetup() { setView('setup'); }
+function showQuiz()  { setView('quiz'); }
 
 el('startBtn').onclick = () => {
   queue = selected().map(o => metaFor(o.fil));
@@ -540,7 +667,9 @@ el('startBtn').onclick = () => {
   renderTrack();
   window.scrollTo({ top: 0 });
 };
-el('backToSetup').onclick = () => { el('audio').pause(); showSetup(); window.scrollTo({ top: 0 }); };
+el('backToSetup').onclick = () => showSetup();
+el('modeVTV').onclick     = () => showSetup();
+el('backToIntro').onclick = () => showIntro();
 
 /* ---------- quiz view ---------- */
 function renderTrack() {
@@ -570,15 +699,19 @@ el('next').onclick = () => { if (i < queue.length - 1) { i++; renderTrack(); } }
 
 /* ---------- all facit ---------- */
 function renderAllFacit() {
+  const line = (k, v, p, cls, pcls) =>
+    '<div class="af-line"><span class="af-k">' + k + '</span>' +
+    '<span class="af-v ' + cls + '">' + escapeHtml(v || '—') + '</span>' +
+    '<span class="af-p ' + (pcls || '') + '">' + p + '</span></div>';
   el('allFacitBody').innerHTML = queue.map((t, n) =>
     '<div class="af-row">' +
       '<span class="af-num">' + String(n + 1).padStart(2, '0') + '</span>' +
-      '<span class="af-body">' +
-        '<b>' + escapeHtml(t.tolkare || '—') + '</b> ' +
-        '<span class="arrow">tolkar</span> ' +
-        escapeHtml(t.original || '—') +
-        '<i>' + escapeHtml(t.originallat || '—') + (t.ar ? ' (' + escapeHtml(t.ar) + ')' : '') + '</i>' +
-      '</span>' +
+      '<div class="af-lines">' +
+        line('Tolkare', t.tolkare, '1p', 'cover') +
+        line('Original', t.original, '1p', 'orig') +
+        line('Originallåt', t.originallat, '+1', 'song') +
+        line('År', t.ar, 'bonus', 'year', 'bonus') +
+      '</div>' +
     '</div>').join('');
 }
 function hideAllFacit() {
