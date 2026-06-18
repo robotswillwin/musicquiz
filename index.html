@@ -931,33 +931,46 @@ async function spLoadTracks(id) {
   const token = await spToken();
   if (!token) throw new Error('Inte inloggad — anslut Spotify igen.');
   const headers = { Authorization: 'Bearer ' + token };
-  const fields = 'next,items(track(name,artists(name),album(name,release_date,images),external_urls))';
-  let next = 'https://api.spotify.com/v1/playlists/' + id + '/tracks?limit=100&fields=' + encodeURIComponent(fields);
-  const out = [];
-  while (next) {
-    const res = await fetch(next, { headers });
-    if (res.status === 401) throw new Error('Sessionen gick ut — logga in igen.');
-    if (!res.ok) {
-      let why = '';
-      try { const j = await res.json(); if (j && j.error && j.error.message) why = ' – ' + j.error.message; } catch (e) {}
-      if (res.status === 403) throw new Error('Spotify nekade (403' + why + '). Beviljade behörigheter: "' + spScope() + '". Saknas "playlist-read-private" → logga ut och anslut igen. Annars är listan Spotify-ägd/spärrad.');
-      if (res.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?)' + why + '.');
-      throw new Error('Kunde inte hämta spellistan (' + res.status + why + ').');
+
+  async function via(path) {
+    const out = [];
+    let next = 'https://api.spotify.com/v1/playlists/' + id + '/' + path + '?limit=100';
+    while (next) {
+      const res = await fetch(next, { headers });
+      if (!res.ok) {
+        const e = new Error('http'); e.status = res.status;
+        try { const j = await res.json(); e.why = j && j.error && j.error.message; } catch (x) {}
+        throw e;
+      }
+      const data = await res.json();
+      for (const it of (data.items || [])) {
+        const t = (it && it.track) || it; if (!t || !t.name) continue;
+        out.push({
+          title: t.name || '',
+          artist: (t.artists || []).map(a => a.name).join(', '),
+          year: ((t.album && t.album.release_date) || '').slice(0, 4),
+          art: (t.album && t.album.images && t.album.images[0] && t.album.images[0].url) || '',
+          url: (t.external_urls && t.external_urls.spotify) || '',
+        });
+      }
+      next = data.next;
     }
-    const data = await res.json();
-    for (const it of (data.items || [])) {
-      const t = it.track; if (!t) continue;
-      out.push({
-        title: t.name || '',
-        artist: (t.artists || []).map(a => a.name).join(', '),
-        year: ((t.album && t.album.release_date) || '').slice(0, 4),
-        art: (t.album && t.album.images && t.album.images[0] && t.album.images[0].url) || '',
-        url: (t.external_urls && t.external_urls.spotify) || '',
-      });
-    }
-    next = data.next;
+    return out;
   }
-  return out;
+
+  try {
+    return await via('tracks');
+  } catch (e) {
+    if (e.status === 401) throw new Error('Sessionen gick ut — logga in igen.');
+    if (e.status === 404) throw new Error('Hittade inte spellistan (privat eller fel länk?).');
+    if (e.status === 403) {
+      try { return await via('items'); }                       // /tracks spärrad? testa /items
+      catch (e2) {
+        throw new Error('Spotify nekar (403' + (e2.why ? ' – ' + e2.why : '') + ') även på /items. Behörigheter finns (' + spScope() + '), så detta är troligen en Spotify-spärr för appar i utvecklingsläge — inte något vi kan koda runt.');
+      }
+    }
+    throw new Error('Kunde inte hämta låtarna (' + (e.status || '?') + (e.why ? ' – ' + e.why : '') + ').');
+  }
 }
 async function spLoadPlaylist(url) {
   const id = spParseId(url);
