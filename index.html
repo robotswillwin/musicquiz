@@ -347,6 +347,9 @@
   .spot-pl-name { font-size: 15px; font-weight: 600; word-break: break-word; }
   .spot-pl-n { flex: 0 0 auto; font: 700 11px/1 var(--mono); color: var(--muted); white-space: nowrap; }
   .spot-or { text-align: center; color: var(--muted); font: 700 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; margin: 22px 0 14px; }
+  .spot-scope { font: 600 11px/1.4 var(--mono); color: var(--muted); margin: -6px 0 14px; overflow-wrap: anywhere; }
+  .spot-scope:empty { display: none; }
+  .spot-scope .error { color: var(--magenta-2); font-weight: 700; }
   .spot-redir { margin-top: 26px; font-size: 13px; color: var(--muted); line-height: 1.5; }
   .spot-redir p { margin: 0 0 8px; }
   .spot-redir-row { display: flex; gap: 8px; align-items: stretch; }
@@ -537,13 +540,17 @@
 
     <div id="spotPick" hidden>
       <p class="sub">Ansluten ✓ — välj en av dina spellistor, eller klistra in en länk.</p>
+      <p class="spot-scope" id="spotScope"></p>
       <ol class="spot-pls" id="spotPlaylists"></ol>
       <p class="status" id="spotListStatus">Hämtar dina spellistor…</p>
       <p class="spot-or">eller klistra in en länk</p>
       <input id="spotUrl" class="spot-input" type="text" inputmode="url" placeholder="https://open.spotify.com/playlist/…">
       <button class="primary-btn" id="spotLoadBtn">Skapa quiz →</button>
       <p class="status" id="spotPickStatus"></p>
-      <div class="quiz-tools"><button id="spotLogout">Logga ut ur Spotify</button></div>
+      <div class="quiz-tools">
+        <button id="spotReauth">🔄 Logga in på nytt</button>
+        <button id="spotLogout">Logga ut</button>
+      </div>
     </div>
 
     <div id="spotQuiz" hidden>
@@ -970,7 +977,7 @@ async function spMyPlaylists() {
     for (const p of (data.items || [])) {
       // Spotify-ägda (editorial/algoritmiska) listor är API-spärrade för nya appar -> hoppa över dem
       if (p && p.id && !(p.owner && p.owner.id === 'spotify'))
-        out.push({ id: p.id, name: p.name || '(namnlös)', total: (p.tracks && p.tracks.total) || 0 });
+        out.push({ id: p.id, name: p.name || '(namnlös)', total: (p.tracks && p.tracks.total) || (p.items && p.items.total) || 0 });
     }
     next = data.next;
   }
@@ -978,6 +985,10 @@ async function spMyPlaylists() {
 }
 async function spShowMyPlaylists() {
   const root = el('spotPlaylists'), st = el('spotListStatus');
+  const sc = spScope();
+  el('spotScope').innerHTML = sc.indexOf('playlist-read-private') >= 0
+    ? 'Behörigheter: ' + escapeHtml(sc)
+    : '<span class="error">Inloggningen saknar spellist-behörighet (' + escapeHtml(sc) + ') — tryck "Logga in på nytt".</span>';
   root.innerHTML = ''; st.innerHTML = '<span class="spin"></span>Hämtar dina spellistor…';
   try {
     const lists = await spMyPlaylists();
@@ -1033,6 +1044,7 @@ el('modeSpotify').onclick = () => {
 el('spotBackToIntro').onclick = () => showIntro();
 el('spotLoginBtn').onclick = () => spLogin();
 el('spotLogout').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); el('spotStatus').textContent = ''; spShow('connect'); };
+el('spotReauth').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); sessionStorage.removeItem('sp_verifier'); spLogin(); };
 el('spotLoadBtn').onclick = async () => {
   const s = el('spotPickStatus'); s.innerHTML = '<span class="spin"></span>Hämtar spellistan…';
   try {
