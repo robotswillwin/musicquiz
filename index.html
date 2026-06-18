@@ -12,13 +12,6 @@
     font-display: swap;
     src: url("fonts/monoton.woff2") format("woff2");
   }
-  @font-face {
-    font-family: "Neonderthaw";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("fonts/neonderthaw.woff2") format("woff2");
-  }
   :root {
     --bg:        #07060d;
     --ink:       #f4effe;
@@ -85,11 +78,11 @@
     margin: 0 0 12px;
   }
   h1 {
-    font-family: "Neonderthaw", cursive;
-    font-size: clamp(48px, 11vw, 92px);
-    line-height: 1.15; letter-spacing: 0; margin: 0;
-    font-weight: 400; color: #fff; text-transform: none;
-    text-shadow: 0 0 3px #fff, 0 0 14px rgba(255,45,155,.92), 0 0 32px rgba(255,45,155,.68), 0 0 60px rgba(255,45,155,.45);
+    font-family: var(--neon);
+    font-size: clamp(38px, 9vw, 76px);
+    line-height: 1.08; letter-spacing: .02em; margin: 0;
+    font-weight: 400; color: #fff; text-transform: uppercase;
+    text-shadow: 0 0 3px #fff, 0 0 13px rgba(255,45,155,.9), 0 0 30px rgba(255,45,155,.65), 0 0 56px rgba(255,45,155,.42);
     animation: flickerIn 1.3s steps(1, end) both;
   }
   .section {
@@ -104,7 +97,7 @@
   h1 { transition: font-size .45s cubic-bezier(.2,.7,.2,1); }
   .speaker { transition: width .45s cubic-bezier(.2,.7,.2,1), height .45s cubic-bezier(.2,.7,.2,1), padding .45s cubic-bezier(.2,.7,.2,1); }
   body[data-view="intro"] .speaker { --spk: 116px; }
-  body[data-view="intro"] h1 { font-size: clamp(54px, 13vw, 108px); }
+  body[data-view="intro"] h1 { font-size: clamp(44px, 11vw, 88px); }
 
   .intro-lead { font: 800 12px/1 var(--mono); letter-spacing: .32em; text-transform: uppercase; color: var(--muted); margin: 6px 0 18px; animation: rise .5s .1s ease both; }
   .modes { display: flex; flex-direction: column; gap: 14px; }
