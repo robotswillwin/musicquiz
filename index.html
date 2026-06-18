@@ -263,8 +263,11 @@
   .status .error { color: var(--magenta-2); font-weight: 700; }
 
   audio { width: 100%; margin-bottom: 22px; border-radius: 10px; }
-  .track-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-  .track-top .tracknum { margin: 0; }
+  .track-top { display: flex; align-items: flex-start; justify-content: space-between; gap: clamp(14px,3vw,26px); margin-bottom: 22px; }
+  .track-top .tracknum { margin: 0; flex: 0 0 auto; }
+  .reveal-col { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex: 1 1 auto; min-width: 0; }
+  .reveal-col .facit { width: 100%; margin-top: 0; }
+  @media (max-width: 520px) { .track-top { flex-direction: column; align-items: stretch; } .reveal-col { align-items: stretch; } }
   .reveal-top {
     flex: 0 0 auto; align-self: center; white-space: nowrap;
     font: 700 14px/1 var(--mono); letter-spacing: .04em;
@@ -507,7 +510,27 @@
     <div class="card">
       <div class="track-top">
         <p class="tracknum" id="tracknum">–</p>
-        <button class="reveal-top" id="revealBtn">Visa facit</button>
+        <div class="reveal-col">
+          <button class="reveal-top" id="revealBtn">Visa facit</button>
+          <div class="facit" id="facit">
+            <div class="row">
+              <span class="label">Tolkare<span class="pts">1p</span></span>
+              <span class="val" id="tolkare"></span>
+            </div>
+            <div class="row">
+              <span class="label">Original<span class="pts">1p</span></span>
+              <span class="val" id="original"></span>
+            </div>
+            <div class="row bonus">
+              <span class="label">Originallåt<span class="pts">+1</span></span>
+              <span class="val" id="originallat"></span>
+            </div>
+            <div class="row bonus">
+              <span class="label">Originalets år<span class="pts">bonus</span></span>
+              <span class="val" id="ar"></span>
+            </div>
+          </div>
+        </div>
       </div>
       <p class="status" id="quizStatus"></p>
       <audio id="audio" controls preload="none"></audio>
@@ -522,24 +545,6 @@
         </ol>
       </div>
 
-      <div class="facit" id="facit">
-        <div class="row">
-          <span class="label">Tolkare<span class="pts">1p</span></span>
-          <span class="val" id="tolkare"></span>
-        </div>
-        <div class="row">
-          <span class="label">Original<span class="pts">1p</span></span>
-          <span class="val" id="original"></span>
-        </div>
-        <div class="row bonus">
-          <span class="label">Originallåt<span class="pts">+1</span></span>
-          <span class="val" id="originallat"></span>
-        </div>
-        <div class="row bonus">
-          <span class="label">Originalets år<span class="pts">bonus</span></span>
-          <span class="val" id="ar"></span>
-        </div>
-      </div>
     </div>
 
     <nav>
@@ -593,7 +598,15 @@
       <div class="card">
         <div class="track-top">
           <p class="tracknum" id="spotNum">–</p>
-          <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
+          <div class="reveal-col">
+            <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
+            <div class="facit" id="spotFacit">
+              <div class="row"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
+              <div class="row"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
+              <div class="row bonus"><span class="label">År<span class="pts">bonus</span></span><span class="val" id="spotYear"></span></div>
+              <div class="spot-art-wrap"><img id="spotArt" class="spot-art" alt="Skivomslag" hidden></div>
+            </div>
+          </div>
         </div>
         <a class="primary-btn" id="spotOpen" target="_blank" rel="noopener">▶ Öppna i Spotify</a>
         <div class="song-qr" id="spotTrackQr" hidden></div>
@@ -604,12 +617,6 @@
             <li><span class="q">Vad heter låten?</span><span class="p">1p</span></li>
             <li><span class="q">Vilket år släpptes den? <em>(bonus)</em></span><span class="p bonus">bonus</span></li>
           </ol>
-        </div>
-        <div class="facit" id="spotFacit">
-          <div class="row"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
-          <div class="row"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
-          <div class="row bonus"><span class="label">År<span class="pts">bonus</span></span><span class="val" id="spotYear"></span></div>
-          <div class="spot-art-wrap"><img id="spotArt" class="spot-art" alt="Skivomslag" hidden></div>
         </div>
       </div>
       <nav>
@@ -934,7 +941,7 @@ const SPOTIFY_SCOPES = 'playlist-read-private playlist-read-collaborative';
 const SP_TOKEN_KEY = 'bitster.spotify.token.v1';
 let spotQueue = [];
 let spotI = 0;
-let spotSongQrOn = false;
+let spotSongQrOn = localStorage.getItem('bitster.spotSongQr') === '1';
 
 function spRand(n) {
   const a = new Uint8Array(n); crypto.getRandomValues(a);
@@ -1155,6 +1162,7 @@ el('spotNext').onclick = () => { if (spotI < spotQueue.length - 1) { spotI++; re
 el('spotNewList').onclick = () => { el('spotUrl').value = ''; el('spotPickStatus').textContent = ''; spShow('pick'); };
 el('spotSongQrBtn').onclick = () => {
   spotSongQrOn = !spotSongQrOn;
+  localStorage.setItem('bitster.spotSongQr', spotSongQrOn ? '1' : '0');
   const box = el('spotTrackQr'), t = spotQueue[spotI];
   if (spotSongQrOn && t && t.url) { box.hidden = false; qrInto(box, t.url); } else box.hidden = true;
 };
