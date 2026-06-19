@@ -277,6 +277,12 @@
   .share-row button { flex: 0 0 auto; font: 700 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 0 14px; border-radius: 9px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink); cursor: pointer; }
   .share-row button:hover { border-color: var(--cyan); }
   .cat-toggles.big .cat-tog { font-size: 16px; padding: 11px 16px; }
+  .ps-toggle { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 16px; cursor: pointer; font: 700 13px/1 var(--mono); color: var(--ink); }
+  .ps-toggle input { width: 18px; height: 18px; accent-color: var(--cyan); }
+  .ps-list { list-style: none; margin: 0 0 4px; padding: 0; max-height: 56vh; overflow-y: auto; }
+  .ps-row { padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .ps-head { font-size: 14px; color: var(--ink); margin: 0 0 9px; word-break: break-word; }
+  .ps-row .cat-tog { font-size: 13px; padding: 7px 11px; }
   @media (max-width: 520px) { .track-top { flex-direction: column; align-items: stretch; } .reveal-col { align-items: stretch; } }
   .reveal-top {
     flex: 0 0 auto; align-self: center; white-space: nowrap;
@@ -489,6 +495,7 @@
       </button>
     </div>
     <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="bd-entry" id="buildEntry" type="button">🛠 Bygg hit-databas</button>
   </section>
 
   <!-- ============ SETUP ============ -->
@@ -644,8 +651,10 @@
   <!-- ============ INSTÄLLNINGAR (kategorier) ============ -->
   <section id="settingsView" hidden>
     <button class="back-link" id="settingsBack">‹ Tillbaka</button>
-    <p class="sub">Vad ska lagen gissa den här omgången? Bocka i kategorierna.</p>
+    <p class="sub">Vad ska lagen gissa? Välj förslagen — samma för alla låtar, eller olika per låt.</p>
+    <label class="ps-toggle"><input type="checkbox" id="perSongToggle"><span>Olika frågor per låt</span></label>
     <div class="cat-toggles big" id="settingsCats"></div>
+    <ol class="ps-list" id="perSongList" hidden></ol>
     <p class="status" id="settingsStatus"></p>
     <button class="primary-btn" id="settingsNext">Fortsätt →</button>
   </section>
@@ -692,6 +701,61 @@
   </div>
 </div>
 
+<style id="bd-style">
+  #buildView { position: fixed; inset: 0; z-index: 9999; background: #0b0916; overflow: auto; padding: clamp(16px,4vw,40px); }
+  #buildView .bd-wrap { max-width: 1040px; margin: 0 auto; }
+  #buildView .bd-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  #buildView h2 { font-size: clamp(22px,5vw,34px); margin: 0; color: #fff; }
+  #buildView .bd-x { background: none; border: 1px solid #2a2540; color: #cfc8e6; border-radius: 10px; width: 40px; height: 40px; font-size: 16px; cursor: pointer; }
+  #buildView .bd-sub { color: #9b93b8; font-size: 13.5px; line-height: 1.55; margin: 10px 0 18px; }
+  #buildView code { background: #171326; padding: 1px 6px; border-radius: 5px; color: #c7ff66; }
+  #buildView .bd-auth, #buildView .bd-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  #buildView #buildAuthMsg { color: #cfc8e6; font-size: 14px; }
+  #buildView .bd-btn { background: #1b1730; border: 1px solid #2f2950; color: #eee; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  #buildView .bd-btn.primary { background: linear-gradient(135deg,#ff2d9b,#7a2bff); border: none; color: #fff; }
+  #buildView .bd-btn.ghost { background: none; }
+  #buildView .bd-btn:disabled { opacity: .45; cursor: not-allowed; }
+  #buildView .bd-summary { color: #9b93b8; font-size: 13px; }
+  #buildView .bd-progress { height: 6px; background: #171326; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
+  #buildView #buildBar { height: 100%; width: 0; background: linear-gradient(90deg,#ff2d9b,#c7ff66); transition: width .2s; }
+  #buildView .bd-tablewrap { overflow: auto; border: 1px solid #211c38; border-radius: 12px; max-height: 60vh; }
+  #buildView .bd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  #buildView .bd-table th, #buildView .bd-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #1c1830; white-space: nowrap; }
+  #buildView .bd-table th { color: #7c7499; font-weight: 600; position: sticky; top: 0; background: #0f0c1c; }
+  #buildView .bd-table td.wrap { white-space: normal; }
+  #buildView .st-ok { color: #5ad17a; }
+  #buildView .st-warn { color: #ffcf4d; }
+  #buildView .st-bad { color: #ff5d6c; }
+  #buildView .bd-muted { color: #6f678c; }
+  .bd-entry { display: block; margin: 22px auto 0; background: none; border: 0; color: #4e4768; font-size: 12px; letter-spacing: .04em; cursor: pointer; }
+  .bd-entry:hover { color: #9b93b8; }
+</style>
+<section id="buildView" hidden>
+  <div class="bd-wrap">
+    <div class="bd-head">
+      <h2>Bygg hit-databas</h2>
+      <button id="buildClose" class="bd-x" title="Stäng">✕</button>
+    </div>
+    <p class="bd-sub">Slår upp en <b>riktig Spotify-länk</b> för varje låt i <code>hits.json</code> via sök-API:t och korskollar årtalet mot Spotifys utgivningsdatum. <b>Ditt årtal är facit</b> — Spotify-året visas bara som kontroll (⚠ vid stor skillnad, ofta remaster). Ladda sedan ner den ifyllda filen och spara den över <code>hits.json</code>.</p>
+    <div class="bd-auth">
+      <span id="buildAuthMsg">…</span>
+      <button id="buildLogin" class="bd-btn">Anslut Spotify</button>
+      <button id="buildLogout" class="bd-btn ghost" hidden>Logga ut</button>
+    </div>
+    <div class="bd-actions">
+      <button id="buildRun" class="bd-btn primary" disabled>Hämta &amp; matcha mot Spotify</button>
+      <button id="buildDownload" class="bd-btn" hidden>⬇ Ladda ner hits.json</button>
+      <span id="buildSummary" class="bd-summary"></span>
+    </div>
+    <div class="bd-progress"><div id="buildBar"></div></div>
+    <div class="bd-tablewrap">
+      <table class="bd-table">
+        <thead><tr><th>#</th><th>År</th><th>Låt (vår data)</th><th>Spotify-match</th><th>Spotify-år</th><th>Status</th></tr></thead>
+        <tbody id="buildRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
 <script src="vendor/qrcode.js"></script>
 <script>
 const el = id => document.getElementById(id);
@@ -884,6 +948,7 @@ el('startBtn').onclick = () => {
   enterSettings({
     title: 'Vem tolkar vem?', n: queue.length,
     allCats: ['Tolkare', 'Original', 'Originallåt', 'År'],
+    songLabel: (idx) => niceName(queue[idx].fil),
     back: () => showSetup(),
     start: () => { i = 0; stopPreview(); hideAllFacit(); showQuiz(); renderTrack(); },
   });
@@ -912,6 +977,7 @@ function renderTrack() {
   el('original').textContent = t.original || '—';
   el('originallat').textContent = t.originallat || '—';
   el('ar').textContent = t.ar || '—';
+  applyFacitFilter(i);
   el('facit').classList.remove('show');
   el('revealBtn').textContent = 'Visa facit';
   el('prev').disabled = i === 0;
@@ -1163,6 +1229,7 @@ function renderSpot() {
   el('spotArtist').textContent = t.artist || '—';
   el('spotTitle').textContent = t.title || '—';
   el('spotYear').textContent = t.year || '—';
+  applyFacitFilter(spotI);
   const art = el('spotArt');
   if (t.art) { art.src = t.art; art.hidden = false; } else { art.removeAttribute('src'); art.hidden = true; }
   el('spotFacit').classList.remove('show');
@@ -1215,8 +1282,11 @@ async function initSpotify() {
   setView('spotify'); spShow('connect'); el('spotStatus').textContent = 'Loggar in…';
   let ok = false;
   try { ok = await spExchange(code); } catch (e) {}
-  history.replaceState({}, '', spRedirect());
-  if (ok) { spShow('pick'); spShowMyPlaylists(); }
+  const backToBuilder = sessionStorage.getItem('bitster_return') === 'bygg';
+  sessionStorage.removeItem('bitster_return');
+  history.replaceState({}, '', spRedirect() + (backToBuilder ? '#bygg' : ''));
+  if (ok && backToBuilder) { bdShow(true); }
+  else if (ok) { spShow('pick'); spShowMyPlaylists(); }
   else el('spotStatus').innerHTML = '<span class="error">Inloggning misslyckades. Försök igen.</span>';
 }
 
@@ -1236,19 +1306,36 @@ function qrInto(elm, text) {
   catch (e) { elm.innerHTML = '<p class="error">För mycket data för en QR-kod — färre låtar/kategorier.</p>'; return false; }
 }
 
-/* ---- förquiz: inställningar (kategorier) -> lobby (team-QR + länk) ---- */
-let quizCtx = null;    // { title, n, allCats, back, start }
-let quizCats = null;   // valda kategorier för omgången
+/* ---- förquiz: inställningar (kategorier, ev. per låt) -> lobby (team-QR + länk) ---- */
+let quizCtx = null;    // { title, n, allCats, songLabel, back, start }
+let quizCfg = null;    // { perSong, c:[globala], ps:[[per låt], ...] }
 
+function catCheckbox(label, checked) {
+  const lab = document.createElement('label'); lab.className = 'cat-tog';
+  const inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = checked;
+  const sp = document.createElement('span'); sp.textContent = label;
+  lab.appendChild(inp); lab.appendChild(sp); return lab;
+}
+function chosenFrom(container) {
+  const out = [];
+  container.querySelectorAll('.cat-tog').forEach(lab => { if (lab.querySelector('input').checked) out.push(lab.querySelector('span').textContent); });
+  return out;
+}
 function enterSettings(ctx) {
   quizCtx = ctx;
-  const box = el('settingsCats'); box.innerHTML = '';
-  ctx.allCats.forEach(label => {
-    const lab = document.createElement('label'); lab.className = 'cat-tog';
-    const inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = true;
-    const sp = document.createElement('span'); sp.textContent = label;
-    lab.appendChild(inp); lab.appendChild(sp); box.appendChild(lab);
-  });
+  const gbox = el('settingsCats'); gbox.innerHTML = '';
+  ctx.allCats.forEach(label => gbox.appendChild(catCheckbox(label, true)));
+  const plist = el('perSongList'); plist.innerHTML = '';
+  for (let s = 0; s < ctx.n; s++) {
+    const li = document.createElement('li'); li.className = 'ps-row';
+    const head = document.createElement('p'); head.className = 'ps-head';
+    head.textContent = String(s + 1).padStart(2, '0') + '. ' + (ctx.songLabel ? ctx.songLabel(s) : 'Låt ' + (s + 1));
+    const togs = document.createElement('div'); togs.className = 'cat-toggles';
+    ctx.allCats.forEach(label => togs.appendChild(catCheckbox(label, true)));
+    li.appendChild(head); li.appendChild(togs); plist.appendChild(li);
+  }
+  el('perSongToggle').checked = false;
+  el('settingsCats').hidden = false; el('perSongList').hidden = true;
   el('settingsStatus').textContent = '';
   setView('settings');
 }
@@ -1256,44 +1343,68 @@ function enterSpotSettings() {
   enterSettings({
     title: 'Spotify-quiz', n: spotQueue.length,
     allCats: ['Artist', 'Låt', 'År'],
+    songLabel: (i) => (spotQueue[i].artist || '?') + ' – ' + (spotQueue[i].title || '?'),
     back: () => { setView('spotify'); spShow('pick'); },
     start: () => { setView('spotify'); spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 }); },
   });
 }
-function chosenCats() {
-  const out = [];
-  el('settingsCats').querySelectorAll('.cat-tog').forEach((lab, i) => { if (lab.querySelector('input').checked) out.push(quizCtx.allCats[i]); });
-  return out;
+el('perSongToggle').onchange = (e) => {
+  const on = e.target.checked;
+  el('settingsCats').hidden = on; el('perSongList').hidden = !on;
+  if (on) {
+    const g = chosenFrom(el('settingsCats'));
+    el('perSongList').querySelectorAll('.ps-row .cat-tog').forEach(lab => {
+      lab.querySelector('input').checked = g.indexOf(lab.querySelector('span').textContent) >= 0;
+    });
+  }
+};
+function quizCfgSummary() { return quizCfg.perSong ? 'olika per låt' : quizCfg.c.join(' · '); }
+function teamUrl() {
+  const p = quizCfg.perSong ? { t: quizCtx.title, n: quizCtx.n, ps: quizCfg.ps } : { t: quizCtx.title, n: quizCtx.n, c: quizCfg.c };
+  return location.origin + location.pathname + '#team=' + b64urlEnc(p);
 }
-function teamUrl() { return location.origin + location.pathname + '#team=' + b64urlEnc({ t: quizCtx.title, n: quizCtx.n, c: quizCats }); }
 function enterLobby() {
   qrInto(el('lobbyQr'), teamUrl());
-  el('lobbyHint').textContent = quizCtx.n + ' låtar · ' + quizCats.join(' · ');
+  el('lobbyHint').textContent = quizCtx.n + ' låtar · ' + quizCfgSummary();
   el('lobbyLink').value = teamUrl();
   setView('lobby');
 }
-function applyFacitFilter() {
-  document.querySelectorAll('.facit .row[data-cat]').forEach(r => { r.hidden = !!(quizCats && quizCats.indexOf(r.getAttribute('data-cat')) < 0); });
-  document.querySelectorAll('.ask li[data-cat]').forEach(li => { li.hidden = !!(quizCats && quizCats.indexOf(li.getAttribute('data-cat')) < 0); });
+function catsForSong(idx) {
+  if (!quizCfg) return [];
+  return quizCfg.perSong ? (quizCfg.ps[idx] || []) : (quizCfg.c || []);
+}
+function applyFacitFilter(idx) {
+  if (!quizCfg) return;
+  const cats = catsForSong(idx);
+  document.querySelectorAll('.facit .row[data-cat]').forEach(r => { r.hidden = cats.indexOf(r.getAttribute('data-cat')) < 0; });
+  document.querySelectorAll('.ask li[data-cat]').forEach(li => { li.hidden = cats.indexOf(li.getAttribute('data-cat')) < 0; });
 }
 el('settingsNext').onclick = () => {
-  const cats = chosenCats();
-  if (!cats.length) { el('settingsStatus').innerHTML = '<span class="error">Välj minst en kategori.</span>'; return; }
-  quizCats = cats; enterLobby();
+  if (el('perSongToggle').checked) {
+    const songs = [];
+    el('perSongList').querySelectorAll('.ps-row').forEach(row => songs.push(chosenFrom(row)));
+    if (!songs.some(s => s.length)) { el('settingsStatus').innerHTML = '<span class="error">Välj minst en kategori för någon låt.</span>'; return; }
+    quizCfg = { perSong: true, ps: songs };
+  } else {
+    const c = chosenFrom(el('settingsCats'));
+    if (!c.length) { el('settingsStatus').innerHTML = '<span class="error">Välj minst en kategori.</span>'; return; }
+    quizCfg = { perSong: false, c: c };
+  }
+  enterLobby();
 };
 el('settingsBack').onclick = () => { if (quizCtx && quizCtx.back) quizCtx.back(); };
 el('lobbyBack').onclick = () => setView('settings');
-el('lobbyStart').onclick = () => { applyFacitFilter(); if (quizCtx && quizCtx.start) quizCtx.start(); };
+el('lobbyStart').onclick = () => { if (quizCtx && quizCtx.start) quizCtx.start(); };
 el('lobbyCopy').onclick = () => {
   if (navigator.clipboard) navigator.clipboard.writeText(el('lobbyLink').value);
   el('lobbyCopy').textContent = 'Kopierat ✓'; setTimeout(() => { el('lobbyCopy').textContent = 'Kopiera'; }, 1500);
 };
 
-/* spelledare: visa team-QR igen under quiz (samma kategorier som valdes) */
+/* spelledare: visa team-QR igen under quiz */
 function openTeamQr() {
-  if (!quizCtx || !quizCats) return;
+  if (!quizCfg) return;
   qrInto(el('teamQrCode'), teamUrl());
-  el('teamQrHint').textContent = quizCtx.n + ' låtar · ' + quizCats.join(' · ');
+  el('teamQrHint').textContent = quizCtx.n + ' låtar · ' + quizCfgSummary();
   el('teamQrPanel').hidden = false;
 }
 el('teamQrBtn').onclick = openTeamQr;
@@ -1301,7 +1412,7 @@ el('spotTeamQrBtn').onclick = openTeamQr;
 el('teamQrClose').onclick = () => { el('teamQrPanel').hidden = true; };
 
 /* lag: svarsblankett (öppnas via #team=...) */
-function teamKey(cfg) { return 'bitster.team.' + b64urlEnc({ t: cfg.t, n: cfg.n, c: cfg.c }); }
+function teamKey(cfg) { return 'bitster.team.' + b64urlEnc({ t: cfg.t, n: cfg.n, c: cfg.c, ps: cfg.ps }); }
 function collectTeam() {
   const a = [];
   el('teamRows').querySelectorAll('.team-row').forEach(row => {
@@ -1319,7 +1430,8 @@ function renderTeamSheet(cfg) {
     const li = document.createElement('li'); li.className = 'team-row';
     const num = document.createElement('span'); num.className = 'team-num'; num.textContent = String(s + 1).padStart(2, '0');
     const fields = document.createElement('div'); fields.className = 'team-fields';
-    cfg.c.forEach((label, ci) => {
+    const cats = cfg.ps ? (cfg.ps[s] || []) : (cfg.c || []);
+    cats.forEach((label, ci) => {
       const inp = document.createElement('input'); inp.className = 'spot-input'; inp.type = 'text'; inp.placeholder = label;
       inp.value = (saved.a && saved.a[s] && saved.a[s][ci]) || '';
       inp.oninput = () => saveTeam(cfg);
@@ -1336,7 +1448,7 @@ el('teamDone').onclick = () => {
   const data = collectTeam();
   if (!data.name) { el('teamName').focus(); return; }
   saveTeam(cfg);
-  qrInto(el('teamAnswerQr'), b64urlEnc({ v: 1, name: data.name, c: cfg.c, a: data.a }));
+  qrInto(el('teamAnswerQr'), b64urlEnc({ v: 1, name: data.name, c: cfg.c, ps: cfg.ps, a: data.a }));
   el('teamResultHint').textContent = data.name + ' · ' + cfg.n + ' låtar';
   el('teamSheet').hidden = true; el('teamResult').hidden = false;
   window.scrollTo({ top: 0 });
@@ -1346,15 +1458,149 @@ function initTeam() {
   const h = location.hash || '';
   if (h.indexOf('#team=') !== 0) return false;
   let cfg; try { cfg = b64urlDec(h.slice(6)); } catch (e) { return false; }
-  if (!cfg || !cfg.n || !cfg.c || !cfg.c.length) return false;
+  if (!cfg || !cfg.n || (!(cfg.c && cfg.c.length) && !(cfg.ps && cfg.ps.length))) return false;
   renderTeamSheet(cfg);
   setView('team');
   return true;
 }
 
+/* ============================================================
+   BYGG HIT-DATABAS — verktyg (öppnas via #bygg eller knappen i menyn).
+   Slår upp riktiga Spotify-spår för varje rad i hits.json via sök-API:t
+   (samma inloggning som Spotify-quizet) och korskollar vårt årtal mot
+   Spotifys utgivningsår. Vårt årtal är alltid facit.
+   ============================================================ */
+let buildData = null;   // ifylld array, redo för nedladdning
+
+const bdNorm = x => String(x || '').toLowerCase().normalize('NFKD')
+  .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+function bdPickBest(items, artist, title) {
+  const na = bdNorm(artist), nt = bdNorm(title);
+  let best = null, bestScore = -1;
+  for (const t of items) {
+    if (!t || !t.id) continue;
+    const tn = bdNorm(t.name);
+    const arts = (t.artists || []).map(a => bdNorm(a.name));
+    let score = 0;
+    if (arts.some(a => a && (a === na || a.includes(na) || na.includes(a)))) score += 3;
+    if (tn === nt) score += 3;
+    else if (tn.includes(nt) || nt.includes(tn)) score += 1;
+    if (/karaoke|tribute|made famous|originally performed|cover version|8-?bit|lullaby|instrumental/.test((t.name || '').toLowerCase())) score -= 5;
+    score += (t.popularity || 0) / 1000;   // tie-break mot mest spelade versionen
+    if (score > bestScore) { bestScore = score; best = t; }
+  }
+  if (!best || bestScore < 3) return null;
+  const imgs = (best.album && best.album.images) || [];
+  return {
+    id: best.id,
+    url: (best.external_urls && best.external_urls.spotify) || ('https://open.spotify.com/track/' + best.id),
+    art: (imgs[0] && imgs[0].url) || '',
+    name: best.name || '',
+    artistName: (best.artists || []).map(a => a.name).join(', '),
+    spotifyYear: ((best.album && best.album.release_date) || '').slice(0, 4),
+    artistMatch: (best.artists || []).some(a => { const n = bdNorm(a.name); return n === na || n.includes(na) || na.includes(n); }),
+  };
+}
+
+async function bdSearch(artist, title) {
+  const token = await spToken();
+  if (!token) throw new Error('Inte inloggad — anslut Spotify.');
+  const headers = { Authorization: 'Bearer ' + token };
+  const queries = ['track:"' + title + '" artist:"' + artist + '"', artist + ' ' + title];
+  for (const q of queries) {
+    const url = 'https://api.spotify.com/v1/search?type=track&limit=15&market=SE&q=' + encodeURIComponent(q);
+    const res = await fetch(url, { headers });
+    if (res.status === 401) throw new Error('Sessionen gick ut — anslut Spotify igen.');
+    if (!res.ok) continue;
+    const data = await res.json();
+    const best = bdPickBest((data.tracks && data.tracks.items) || [], artist, title);
+    if (best) return best;
+  }
+  return null;
+}
+
+const bdSleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function bdRun() {
+  el('buildRun').disabled = true;
+  el('buildDownload').hidden = true;
+  el('buildRows').innerHTML = '';
+  el('buildSummary').textContent = '';
+  el('buildBar').style.width = '0';
+  let src;
+  try { src = await (await fetch('hits.json', { cache: 'no-store' })).json(); }
+  catch (e) { el('buildSummary').innerHTML = '<span class="st-bad">Kunde inte läsa hits.json.</span>'; el('buildRun').disabled = false; return; }
+  const out = [];
+  let matched = 0, warned = 0, missing = 0;
+  for (let k = 0; k < src.length; k++) {
+    const s = src[k];
+    const tr = document.createElement('tr');
+    el('buildRows').appendChild(tr);
+    let m = null, err = '';
+    try { m = await bdSearch(s.artist, s.title); } catch (e) { err = e.message; }
+    let status, cls;
+    if (err) { status = '⚠ ' + err; cls = 'st-bad'; missing++; }
+    else if (!m) { status = '✗ ingen match'; cls = 'st-bad'; missing++; }
+    else if (!m.artistMatch) { status = '⚠ kontrollera artist'; cls = 'st-warn'; warned++; }
+    else if (m.spotifyYear && Math.abs(parseInt(m.spotifyYear, 10) - s.year) > 1) { status = '⚠ år (' + m.spotifyYear + ' vs ' + s.year + ')'; cls = 'st-warn'; warned++; }
+    else { status = '✓'; cls = 'st-ok'; matched++; }
+    out.push({ artist: s.artist, title: s.title, year: s.year, url: m ? m.url : '', id: m ? m.id : '', art: m ? m.art : '' });
+    tr.innerHTML =
+      '<td class="bd-muted">' + (k + 1) + '</td>' +
+      '<td>' + s.year + '</td>' +
+      '<td class="wrap">' + escapeHtml(s.artist) + ' – ' + escapeHtml(s.title) + '</td>' +
+      '<td class="wrap">' + (m ? escapeHtml(m.artistName + ' – ' + m.name) : '<span class="bd-muted">—</span>') + '</td>' +
+      '<td>' + (m && m.spotifyYear ? m.spotifyYear : '<span class="bd-muted">—</span>') + '</td>' +
+      '<td class="' + cls + '">' + escapeHtml(status) + '</td>';
+    el('buildBar').style.width = Math.round((k + 1) / src.length * 100) + '%';
+    el('buildSummary').innerHTML = '<span class="st-ok">' + matched + ' ✓</span> · <span class="st-warn">' + warned + ' ⚠</span> · <span class="st-bad">' + missing + ' ✗</span> av ' + src.length;
+    await bdSleep(90);
+  }
+  buildData = out;
+  el('buildDownload').hidden = false;
+}
+
+function bdDownload() {
+  if (!buildData) return;
+  const blob = new Blob([JSON.stringify(buildData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'hits.json'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function bdSyncAuth() {
+  const inn = spLoggedIn();
+  el('buildLogin').hidden = inn;
+  el('buildLogout').hidden = !inn;
+  el('buildRun').disabled = !inn;
+  el('buildAuthMsg').innerHTML = inn
+    ? '<span class="st-ok">✓ Spotify ansluten.</span> Klicka för att hämta länkar.'
+    : 'Anslut Spotify för att hämta riktiga låtlänkar (samma inloggning som Spotify-quizet).';
+}
+
+function bdShow(on) {
+  el('buildView').hidden = !on;
+  if (on) bdSyncAuth();
+}
+
+el('buildEntry').onclick = () => { location.hash = '#bygg'; };
+el('buildClose').onclick = () => { bdShow(false); if ((location.hash || '').toLowerCase() === '#bygg') history.replaceState({}, '', location.pathname); };
+el('buildLogin').onclick = () => { sessionStorage.setItem('bitster_return', 'bygg'); spLogin(); };
+el('buildLogout').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); bdSyncAuth(); };
+el('buildRun').onclick = bdRun;
+el('buildDownload').onclick = bdDownload;
+
+function initBuilder() {
+  const wantsBuilder = () => (location.hash || '').toLowerCase() === '#bygg';
+  window.addEventListener('hashchange', () => bdShow(wantsBuilder()));
+  if (wantsBuilder()) bdShow(true);
+}
+
 load();
 initSpotify();
 initTeam();
+initBuilder();
 </script>
 </body>
 </html>
