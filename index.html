@@ -266,7 +266,17 @@
   .track-top { display: flex; align-items: flex-start; justify-content: space-between; gap: clamp(14px,3vw,26px); margin-bottom: 22px; }
   .track-top .tracknum { margin: 0; flex: 0 0 auto; }
   .reveal-col { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex: 1 1 auto; min-width: 0; }
-  .reveal-col .facit { width: 100%; margin-top: 0; }
+  .reveal-col .facit { width: 100%; margin-top: 0; order: 1; }
+  .reveal-col .reveal-top { order: 2; }
+  .reveal-col .facit .val { font-size: clamp(17px, 3.2vw, 21px); }
+  .reveal-col .facit .row { padding: 11px 0; }
+  .reveal-col .spot-art { width: 116px; }
+  .reveal-col .spot-art-wrap { padding-top: 12px; }
+  .share-row { display: flex; gap: 8px; margin: 14px 0 22px; }
+  .share-row input { flex: 1 1 auto; min-width: 0; font-size: 12px; }
+  .share-row button { flex: 0 0 auto; font: 700 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 0 14px; border-radius: 9px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink); cursor: pointer; }
+  .share-row button:hover { border-color: var(--cyan); }
+  .cat-toggles.big .cat-tog { font-size: 16px; padding: 11px 16px; }
   @media (max-width: 520px) { .track-top { flex-direction: column; align-items: stretch; } .reveal-col { align-items: stretch; } }
   .reveal-top {
     flex: 0 0 auto; align-self: center; white-space: nowrap;
@@ -513,19 +523,19 @@
         <div class="reveal-col">
           <button class="reveal-top" id="revealBtn">Visa facit</button>
           <div class="facit" id="facit">
-            <div class="row">
+            <div class="row" data-cat="Tolkare">
               <span class="label">Tolkare<span class="pts">1p</span></span>
               <span class="val" id="tolkare"></span>
             </div>
-            <div class="row">
+            <div class="row" data-cat="Original">
               <span class="label">Original<span class="pts">1p</span></span>
               <span class="val" id="original"></span>
             </div>
-            <div class="row bonus">
+            <div class="row bonus" data-cat="Originallåt">
               <span class="label">Originallåt<span class="pts">+1</span></span>
               <span class="val" id="originallat"></span>
             </div>
-            <div class="row bonus">
+            <div class="row bonus" data-cat="År">
               <span class="label">Originalets år<span class="pts">bonus</span></span>
               <span class="val" id="ar"></span>
             </div>
@@ -538,10 +548,10 @@
       <div class="ask">
         <h2>Fråga lagen</h2>
         <ol>
-          <li><span class="q">Vilken är det som sjunger?</span><span class="p">1p</span></li>
-          <li><span class="q">Vilken har skrivit originalet?</span><span class="p">1p</span></li>
-          <li><span class="q">Vad heter originallåten?</span><span class="p">+1</span></li>
-          <li><span class="q">Vilket år släpptes originalet? <em>(valfri)</em></span><span class="p bonus">bonus</span></li>
+          <li data-cat="Tolkare"><span class="q">Vilken är det som sjunger?</span><span class="p">1p</span></li>
+          <li data-cat="Original"><span class="q">Vilken har skrivit originalet?</span><span class="p">1p</span></li>
+          <li data-cat="Originallåt"><span class="q">Vad heter originallåten?</span><span class="p">+1</span></li>
+          <li data-cat="År"><span class="q">Vilket år släpptes originalet? <em>(valfri)</em></span><span class="p bonus">bonus</span></li>
         </ol>
       </div>
 
@@ -601,9 +611,9 @@
           <div class="reveal-col">
             <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
             <div class="facit" id="spotFacit">
-              <div class="row"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
-              <div class="row"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
-              <div class="row bonus"><span class="label">År<span class="pts">bonus</span></span><span class="val" id="spotYear"></span></div>
+              <div class="row" data-cat="Artist"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
+              <div class="row" data-cat="Låt"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
+              <div class="row bonus" data-cat="År"><span class="label">År<span class="pts">bonus</span></span><span class="val" id="spotYear"></span></div>
               <div class="spot-art-wrap"><img id="spotArt" class="spot-art" alt="Skivomslag" hidden></div>
             </div>
           </div>
@@ -613,9 +623,9 @@
         <div class="ask">
           <h2>Fråga lagen</h2>
           <ol>
-            <li><span class="q">Vilken artist?</span><span class="p">1p</span></li>
-            <li><span class="q">Vad heter låten?</span><span class="p">1p</span></li>
-            <li><span class="q">Vilket år släpptes den? <em>(bonus)</em></span><span class="p bonus">bonus</span></li>
+            <li data-cat="Artist"><span class="q">Vilken artist?</span><span class="p">1p</span></li>
+            <li data-cat="Låt"><span class="q">Vad heter låten?</span><span class="p">1p</span></li>
+            <li data-cat="År"><span class="q">Vilket år släpptes den? <em>(bonus)</em></span><span class="p bonus">bonus</span></li>
           </ol>
         </div>
       </div>
@@ -629,6 +639,28 @@
         <button id="spotNewList">⟳ Annan spellista</button>
       </div>
     </div>
+  </section>
+
+  <!-- ============ INSTÄLLNINGAR (kategorier) ============ -->
+  <section id="settingsView" hidden>
+    <button class="back-link" id="settingsBack">‹ Tillbaka</button>
+    <p class="sub">Vad ska lagen gissa den här omgången? Bocka i kategorierna.</p>
+    <div class="cat-toggles big" id="settingsCats"></div>
+    <p class="status" id="settingsStatus"></p>
+    <button class="primary-btn" id="settingsNext">Fortsätt →</button>
+  </section>
+
+  <!-- ============ LOBBY (team-QR + länk) ============ -->
+  <section id="lobbyView" hidden>
+    <button class="back-link" id="lobbyBack">‹ Inställningar</button>
+    <p class="sub">Lagen ansluter genom att skanna QR-koden eller öppna länken. Starta när alla är inne.</p>
+    <div class="qr-box" id="lobbyQr"></div>
+    <p class="qr-hint" id="lobbyHint"></p>
+    <div class="share-row">
+      <input id="lobbyLink" class="spot-input" type="text" readonly>
+      <button id="lobbyCopy" type="button">Kopiera</button>
+    </div>
+    <button class="primary-btn" id="lobbyStart">Starta quiz →</button>
   </section>
 
   <!-- ============ TEAM (lag svarar via QR) ============ -->
@@ -829,9 +861,12 @@ function setView(name) {
   el('quizView').hidden  = name !== 'quiz';
   el('spotifyView').hidden = name !== 'spotify';
   el('teamView').hidden = name !== 'team';
+  el('settingsView').hidden = name !== 'settings';
+  el('lobbyView').hidden = name !== 'lobby';
   const sec = document.querySelector('.section');
   sec.hidden = name === 'intro' || name === 'team';
   if (name === 'spotify') sec.textContent = 'Spotify-quiz';
+  else if (name === 'settings' || name === 'lobby') sec.textContent = (quizCtx && quizCtx.title) || '';
   else if (name === 'quiz' || name === 'setup') sec.innerHTML = 'Vem tolkar <em>vem?</em>';
   document.body.setAttribute('data-view', name);
   document.querySelector('header').title = (name === 'intro' || name === 'team') ? '' : 'Tillbaka till start';
@@ -846,12 +881,12 @@ function showQuiz()  { setView('quiz'); }
 el('startBtn').onclick = () => {
   queue = selected().map(o => metaFor(o.fil));
   if (queue.length === 0) return;
-  i = 0;
-  stopPreview();
-  hideAllFacit();
-  showQuiz();
-  renderTrack();
-  window.scrollTo({ top: 0 });
+  enterSettings({
+    title: 'Vem tolkar vem?', n: queue.length,
+    allCats: ['Tolkare', 'Original', 'Originallåt', 'År'],
+    back: () => showSetup(),
+    start: () => { i = 0; stopPreview(); hideAllFacit(); showQuiz(); renderTrack(); },
+  });
 };
 el('backToSetup').onclick = () => showSetup();
 el('modeVTV').onclick     = () => showSetup();
@@ -1109,7 +1144,7 @@ async function spStartFromId(id) {
     const tracks = await spLoadTracks(id);
     if (!tracks.length) throw new Error('Inga låtar i spellistan.');
     spotQueue = tracks; spotI = 0; st.textContent = '';
-    spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 });
+    enterSpotSettings();
   } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
 }
 
@@ -1150,7 +1185,7 @@ el('spotLoadBtn').onclick = async () => {
     const tracks = await spLoadPlaylist(el('spotUrl').value);
     if (!tracks.length) throw new Error('Inga låtar i spellistan.');
     spotQueue = tracks; spotI = 0; s.textContent = '';
-    spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 });
+    enterSpotSettings();
   } catch (e) { s.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
 };
 el('spotRevealBtn').onclick = () => {
@@ -1201,37 +1236,65 @@ function qrInto(elm, text) {
   catch (e) { elm.innerHTML = '<p class="error">För mycket data för en QR-kod — färre låtar/kategorier.</p>'; return false; }
 }
 
-// kategorier per spelläge (nytt läge -> lägg till en rad, samma flöde funkar)
-function currentQuizMeta() {
-  const view = document.body.getAttribute('data-view');
-  if (view === 'spotify') return { title: 'Spotify-quiz', n: spotQueue.length, cats: ['Artist', 'Låt', 'År'] };
-  if (view === 'quiz')    return { title: 'Vem tolkar vem?', n: queue.length, cats: ['Tolkare', 'Original', 'Originallåt', 'År'] };
-  return null;
-}
+/* ---- förquiz: inställningar (kategorier) -> lobby (team-QR + länk) ---- */
+let quizCtx = null;    // { title, n, allCats, back, start }
+let quizCats = null;   // valda kategorier för omgången
 
-/* spelledare: QR till lagen */
-function openTeamQr() {
-  const meta = currentQuizMeta();
-  if (!meta || !meta.n) return;
-  const tog = el('catToggles'); tog.innerHTML = '';
-  meta.cats.forEach(label => {
+function enterSettings(ctx) {
+  quizCtx = ctx;
+  const box = el('settingsCats'); box.innerHTML = '';
+  ctx.allCats.forEach(label => {
     const lab = document.createElement('label'); lab.className = 'cat-tog';
-    const inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = true; inp.onchange = renderTeamQr;
+    const inp = document.createElement('input'); inp.type = 'checkbox'; inp.checked = true;
     const sp = document.createElement('span'); sp.textContent = label;
-    lab.appendChild(inp); lab.appendChild(sp); tog.appendChild(lab);
+    lab.appendChild(inp); lab.appendChild(sp); box.appendChild(lab);
   });
-  el('teamQrPanel').dataset.meta = JSON.stringify(meta);
-  el('teamQrPanel').hidden = false;
-  renderTeamQr();
+  el('settingsStatus').textContent = '';
+  setView('settings');
 }
-function renderTeamQr() {
-  const meta = JSON.parse(el('teamQrPanel').dataset.meta || 'null'); if (!meta) return;
-  const labels = [];
-  el('catToggles').querySelectorAll('.cat-tog').forEach((lab, i) => { if (lab.querySelector('input').checked) labels.push(meta.cats[i]); });
-  if (!labels.length) { el('teamQrCode').innerHTML = '<p class="error">Välj minst en kategori.</p>'; el('teamQrHint').textContent = ''; return; }
-  const url = location.origin + location.pathname + '#team=' + b64urlEnc({ t: meta.title, n: meta.n, c: labels });
-  qrInto(el('teamQrCode'), url);
-  el('teamQrHint').textContent = meta.n + ' låtar · ' + labels.join(' · ');
+function enterSpotSettings() {
+  enterSettings({
+    title: 'Spotify-quiz', n: spotQueue.length,
+    allCats: ['Artist', 'Låt', 'År'],
+    back: () => { setView('spotify'); spShow('pick'); },
+    start: () => { setView('spotify'); spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 }); },
+  });
+}
+function chosenCats() {
+  const out = [];
+  el('settingsCats').querySelectorAll('.cat-tog').forEach((lab, i) => { if (lab.querySelector('input').checked) out.push(quizCtx.allCats[i]); });
+  return out;
+}
+function teamUrl() { return location.origin + location.pathname + '#team=' + b64urlEnc({ t: quizCtx.title, n: quizCtx.n, c: quizCats }); }
+function enterLobby() {
+  qrInto(el('lobbyQr'), teamUrl());
+  el('lobbyHint').textContent = quizCtx.n + ' låtar · ' + quizCats.join(' · ');
+  el('lobbyLink').value = teamUrl();
+  setView('lobby');
+}
+function applyFacitFilter() {
+  document.querySelectorAll('.facit .row[data-cat]').forEach(r => { r.hidden = !!(quizCats && quizCats.indexOf(r.getAttribute('data-cat')) < 0); });
+  document.querySelectorAll('.ask li[data-cat]').forEach(li => { li.hidden = !!(quizCats && quizCats.indexOf(li.getAttribute('data-cat')) < 0); });
+}
+el('settingsNext').onclick = () => {
+  const cats = chosenCats();
+  if (!cats.length) { el('settingsStatus').innerHTML = '<span class="error">Välj minst en kategori.</span>'; return; }
+  quizCats = cats; enterLobby();
+};
+el('settingsBack').onclick = () => { if (quizCtx && quizCtx.back) quizCtx.back(); };
+el('lobbyBack').onclick = () => setView('settings');
+el('lobbyStart').onclick = () => { applyFacitFilter(); if (quizCtx && quizCtx.start) quizCtx.start(); };
+el('lobbyCopy').onclick = () => {
+  if (navigator.clipboard) navigator.clipboard.writeText(el('lobbyLink').value);
+  el('lobbyCopy').textContent = 'Kopierat ✓'; setTimeout(() => { el('lobbyCopy').textContent = 'Kopiera'; }, 1500);
+};
+
+/* spelledare: visa team-QR igen under quiz (samma kategorier som valdes) */
+function openTeamQr() {
+  if (!quizCtx || !quizCats) return;
+  qrInto(el('teamQrCode'), teamUrl());
+  el('teamQrHint').textContent = quizCtx.n + ' låtar · ' + quizCats.join(' · ');
+  el('teamQrPanel').hidden = false;
 }
 el('teamQrBtn').onclick = openTeamQr;
 el('spotTeamQrBtn').onclick = openTeamQr;
