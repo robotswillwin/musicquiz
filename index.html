@@ -493,9 +493,25 @@
         </span>
         <span class="mode-go" aria-hidden="true">▶</span>
       </button>
+      <button class="mode-card" id="modeHits">
+        <span class="mode-num">03</span>
+        <span class="mode-body">
+          <span class="mode-name">Hit-quiz</span>
+          <span class="mode-desc">Slumpa låtar ur hit-databasen — du väljer hur många. Lagen gissar artist, låt och år.</span>
+        </span>
+        <span class="mode-go" aria-hidden="true">▶</span>
+      </button>
     </div>
     <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <button class="bd-entry" id="buildEntry" type="button">🛠 Bygg hit-databas</button>
+  </section>
+
+  <!-- ============ HIT-QUIZ (slumpa ur hit-databasen) ============ -->
+  <section id="hitView" hidden>
+    <button class="back-link" id="hitBack">‹ Bitster-meny</button>
+    <p class="sub">Slumpa låtar ur hit-databasen. Hur många låtar ska vara med?</p>
+    <input id="hitCount" class="spot-input" type="number" min="1" value="10" inputmode="numeric">
+    <p class="status" id="hitStatus"></p>
+    <button class="primary-btn" id="hitStart">Slumpa &amp; fortsätt →</button>
   </section>
 
   <!-- ============ SETUP ============ -->
@@ -701,61 +717,6 @@
   </div>
 </div>
 
-<style id="bd-style">
-  #buildView { position: fixed; inset: 0; z-index: 9999; background: #0b0916; overflow: auto; padding: clamp(16px,4vw,40px); }
-  #buildView .bd-wrap { max-width: 1040px; margin: 0 auto; }
-  #buildView .bd-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  #buildView h2 { font-size: clamp(22px,5vw,34px); margin: 0; color: #fff; }
-  #buildView .bd-x { background: none; border: 1px solid #2a2540; color: #cfc8e6; border-radius: 10px; width: 40px; height: 40px; font-size: 16px; cursor: pointer; }
-  #buildView .bd-sub { color: #9b93b8; font-size: 13.5px; line-height: 1.55; margin: 10px 0 18px; }
-  #buildView code { background: #171326; padding: 1px 6px; border-radius: 5px; color: #c7ff66; }
-  #buildView .bd-auth, #buildView .bd-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-  #buildView #buildAuthMsg { color: #cfc8e6; font-size: 14px; }
-  #buildView .bd-btn { background: #1b1730; border: 1px solid #2f2950; color: #eee; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  #buildView .bd-btn.primary { background: linear-gradient(135deg,#ff2d9b,#7a2bff); border: none; color: #fff; }
-  #buildView .bd-btn.ghost { background: none; }
-  #buildView .bd-btn:disabled { opacity: .45; cursor: not-allowed; }
-  #buildView .bd-summary { color: #9b93b8; font-size: 13px; }
-  #buildView .bd-progress { height: 6px; background: #171326; border-radius: 6px; overflow: hidden; margin-bottom: 14px; }
-  #buildView #buildBar { height: 100%; width: 0; background: linear-gradient(90deg,#ff2d9b,#c7ff66); transition: width .2s; }
-  #buildView .bd-tablewrap { overflow: auto; border: 1px solid #211c38; border-radius: 12px; max-height: 60vh; }
-  #buildView .bd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  #buildView .bd-table th, #buildView .bd-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #1c1830; white-space: nowrap; }
-  #buildView .bd-table th { color: #7c7499; font-weight: 600; position: sticky; top: 0; background: #0f0c1c; }
-  #buildView .bd-table td.wrap { white-space: normal; }
-  #buildView .st-ok { color: #5ad17a; }
-  #buildView .st-warn { color: #ffcf4d; }
-  #buildView .st-bad { color: #ff5d6c; }
-  #buildView .bd-muted { color: #6f678c; }
-  .bd-entry { display: block; margin: 22px auto 0; background: none; border: 0; color: #4e4768; font-size: 12px; letter-spacing: .04em; cursor: pointer; }
-  .bd-entry:hover { color: #9b93b8; }
-</style>
-<section id="buildView" hidden>
-  <div class="bd-wrap">
-    <div class="bd-head">
-      <h2>Bygg hit-databas</h2>
-      <button id="buildClose" class="bd-x" title="Stäng">✕</button>
-    </div>
-    <p class="bd-sub">Slår upp en <b>riktig Spotify-länk</b> för varje låt i <code>hits.json</code> via sök-API:t och korskollar årtalet mot Spotifys utgivningsdatum. <b>Ditt årtal är facit</b> — Spotify-året visas bara som kontroll (⚠ vid stor skillnad, ofta remaster). Ladda sedan ner den ifyllda filen och spara den över <code>hits.json</code>.</p>
-    <div class="bd-auth">
-      <span id="buildAuthMsg">…</span>
-      <button id="buildLogin" class="bd-btn">Anslut Spotify</button>
-      <button id="buildLogout" class="bd-btn ghost" hidden>Logga ut</button>
-    </div>
-    <div class="bd-actions">
-      <button id="buildRun" class="bd-btn primary" disabled>Hämta &amp; matcha mot Spotify</button>
-      <button id="buildDownload" class="bd-btn" hidden>⬇ Ladda ner hits.json</button>
-      <span id="buildSummary" class="bd-summary"></span>
-    </div>
-    <div class="bd-progress"><div id="buildBar"></div></div>
-    <div class="bd-tablewrap">
-      <table class="bd-table">
-        <thead><tr><th>#</th><th>År</th><th>Låt (vår data)</th><th>Spotify-match</th><th>Spotify-år</th><th>Status</th></tr></thead>
-        <tbody id="buildRows"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
 <script src="vendor/qrcode.js"></script>
 <script>
 const el = id => document.getElementById(id);
@@ -927,6 +888,7 @@ function setView(name) {
   el('teamView').hidden = name !== 'team';
   el('settingsView').hidden = name !== 'settings';
   el('lobbyView').hidden = name !== 'lobby';
+  el('hitView').hidden = name !== 'hits';
   const sec = document.querySelector('.section');
   sec.hidden = name === 'intro' || name === 'team';
   if (name === 'spotify') sec.textContent = 'Spotify-quiz';
@@ -1282,11 +1244,8 @@ async function initSpotify() {
   setView('spotify'); spShow('connect'); el('spotStatus').textContent = 'Loggar in…';
   let ok = false;
   try { ok = await spExchange(code); } catch (e) {}
-  const backToBuilder = sessionStorage.getItem('bitster_return') === 'bygg';
-  sessionStorage.removeItem('bitster_return');
-  history.replaceState({}, '', spRedirect() + (backToBuilder ? '#bygg' : ''));
-  if (ok && backToBuilder) { bdShow(true); }
-  else if (ok) { spShow('pick'); spShowMyPlaylists(); }
+  history.replaceState({}, '', spRedirect());
+  if (ok) { spShow('pick'); spShowMyPlaylists(); }
   else el('spotStatus').innerHTML = '<span class="error">Inloggning misslyckades. Försök igen.</span>';
 }
 
@@ -1464,143 +1423,54 @@ function initTeam() {
   return true;
 }
 
-/* ============================================================
-   BYGG HIT-DATABAS — verktyg (öppnas via #bygg eller knappen i menyn).
-   Slår upp riktiga Spotify-spår för varje rad i hits.json via sök-API:t
-   (samma inloggning som Spotify-quizet) och korskollar vårt årtal mot
-   Spotifys utgivningsår. Vårt årtal är alltid facit.
-   ============================================================ */
-let buildData = null;   // ifylld array, redo för nedladdning
-
-const bdNorm = x => String(x || '').toLowerCase().normalize('NFKD')
-  .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
-
-function bdPickBest(items, artist, title) {
-  const na = bdNorm(artist), nt = bdNorm(title);
-  let best = null, bestScore = -1;
-  for (const t of items) {
-    if (!t || !t.id) continue;
-    const tn = bdNorm(t.name);
-    const arts = (t.artists || []).map(a => bdNorm(a.name));
-    let score = 0;
-    if (arts.some(a => a && (a === na || a.includes(na) || na.includes(a)))) score += 3;
-    if (tn === nt) score += 3;
-    else if (tn.includes(nt) || nt.includes(tn)) score += 1;
-    if (/karaoke|tribute|made famous|originally performed|cover version|8-?bit|lullaby|instrumental/.test((t.name || '').toLowerCase())) score -= 5;
-    score += (t.popularity || 0) / 1000;   // tie-break mot mest spelade versionen
-    if (score > bestScore) { bestScore = score; best = t; }
-  }
-  if (!best || bestScore < 3) return null;
-  const imgs = (best.album && best.album.images) || [];
-  return {
-    id: best.id,
-    url: (best.external_urls && best.external_urls.spotify) || ('https://open.spotify.com/track/' + best.id),
-    art: (imgs[0] && imgs[0].url) || '',
-    name: best.name || '',
-    artistName: (best.artists || []).map(a => a.name).join(', '),
-    spotifyYear: ((best.album && best.album.release_date) || '').slice(0, 4),
-    artistMatch: (best.artists || []).some(a => { const n = bdNorm(a.name); return n === na || n.includes(na) || na.includes(n); }),
-  };
+/* ---- Hit-quiz: slumpa N låtar ur hits.json (återanvänder Spotify-quizvyn) ---- */
+let hitsDb = null;
+async function loadHits() {
+  if (hitsDb) return hitsDb;
+  const res = await fetch('hits.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('hits.json hittades inte (' + res.status + ')');
+  const d = await res.json();
+  hitsDb = Array.isArray(d) ? d : (d.hits || d.songs || []);
+  return hitsDb;
 }
-
-async function bdSearch(artist, title) {
-  const token = await spToken();
-  if (!token) throw new Error('Inte inloggad — anslut Spotify.');
-  const headers = { Authorization: 'Bearer ' + token };
-  const queries = ['track:"' + title + '" artist:"' + artist + '"', artist + ' ' + title];
-  for (const q of queries) {
-    const url = 'https://api.spotify.com/v1/search?type=track&limit=15&market=SE&q=' + encodeURIComponent(q);
-    const res = await fetch(url, { headers });
-    if (res.status === 401) throw new Error('Sessionen gick ut — anslut Spotify igen.');
-    if (!res.ok) continue;
-    const data = await res.json();
-    const best = bdPickBest((data.tracks && data.tracks.items) || [], artist, title);
-    if (best) return best;
-  }
-  return null;
-}
-
-const bdSleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function bdRun() {
-  el('buildRun').disabled = true;
-  el('buildDownload').hidden = true;
-  el('buildRows').innerHTML = '';
-  el('buildSummary').textContent = '';
-  el('buildBar').style.width = '0';
-  let src;
-  try { src = await (await fetch('hits.json', { cache: 'no-store' })).json(); }
-  catch (e) { el('buildSummary').innerHTML = '<span class="st-bad">Kunde inte läsa hits.json.</span>'; el('buildRun').disabled = false; return; }
-  const out = [];
-  let matched = 0, warned = 0, missing = 0;
-  for (let k = 0; k < src.length; k++) {
-    const s = src[k];
-    const tr = document.createElement('tr');
-    el('buildRows').appendChild(tr);
-    let m = null, err = '';
-    try { m = await bdSearch(s.artist, s.title); } catch (e) { err = e.message; }
-    let status, cls;
-    if (err) { status = '⚠ ' + err; cls = 'st-bad'; missing++; }
-    else if (!m) { status = '✗ ingen match'; cls = 'st-bad'; missing++; }
-    else if (!m.artistMatch) { status = '⚠ kontrollera artist'; cls = 'st-warn'; warned++; }
-    else if (m.spotifyYear && Math.abs(parseInt(m.spotifyYear, 10) - s.year) > 1) { status = '⚠ år (' + m.spotifyYear + ' vs ' + s.year + ')'; cls = 'st-warn'; warned++; }
-    else { status = '✓'; cls = 'st-ok'; matched++; }
-    out.push({ artist: s.artist, title: s.title, year: s.year, url: m ? m.url : '', id: m ? m.id : '', art: m ? m.art : '' });
-    tr.innerHTML =
-      '<td class="bd-muted">' + (k + 1) + '</td>' +
-      '<td>' + s.year + '</td>' +
-      '<td class="wrap">' + escapeHtml(s.artist) + ' – ' + escapeHtml(s.title) + '</td>' +
-      '<td class="wrap">' + (m ? escapeHtml(m.artistName + ' – ' + m.name) : '<span class="bd-muted">—</span>') + '</td>' +
-      '<td>' + (m && m.spotifyYear ? m.spotifyYear : '<span class="bd-muted">—</span>') + '</td>' +
-      '<td class="' + cls + '">' + escapeHtml(status) + '</td>';
-    el('buildBar').style.width = Math.round((k + 1) / src.length * 100) + '%';
-    el('buildSummary').innerHTML = '<span class="st-ok">' + matched + ' ✓</span> · <span class="st-warn">' + warned + ' ⚠</span> · <span class="st-bad">' + missing + ' ✗</span> av ' + src.length;
-    await bdSleep(90);
-  }
-  buildData = out;
-  el('buildDownload').hidden = false;
-}
-
-function bdDownload() {
-  if (!buildData) return;
-  const blob = new Blob([JSON.stringify(buildData, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'hits.json'; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-}
-
-function bdSyncAuth() {
-  const inn = spLoggedIn();
-  el('buildLogin').hidden = inn;
-  el('buildLogout').hidden = !inn;
-  el('buildRun').disabled = !inn;
-  el('buildAuthMsg').innerHTML = inn
-    ? '<span class="st-ok">✓ Spotify ansluten.</span> Klicka för att hämta länkar.'
-    : 'Anslut Spotify för att hämta riktiga låtlänkar (samma inloggning som Spotify-quizet).';
-}
-
-function bdShow(on) {
-  el('buildView').hidden = !on;
-  if (on) bdSyncAuth();
-}
-
-el('buildEntry').onclick = () => { location.hash = '#bygg'; };
-el('buildClose').onclick = () => { bdShow(false); if ((location.hash || '').toLowerCase() === '#bygg') history.replaceState({}, '', location.pathname); };
-el('buildLogin').onclick = () => { sessionStorage.setItem('bitster_return', 'bygg'); spLogin(); };
-el('buildLogout').onclick = () => { localStorage.removeItem(SP_TOKEN_KEY); bdSyncAuth(); };
-el('buildRun').onclick = bdRun;
-el('buildDownload').onclick = bdDownload;
-
-function initBuilder() {
-  const wantsBuilder = () => (location.hash || '').toLowerCase() === '#bygg';
-  window.addEventListener('hashchange', () => bdShow(wantsBuilder()));
-  if (wantsBuilder()) bdShow(true);
-}
+el('modeHits').onclick = async () => {
+  setView('hits');
+  const st = el('hitStatus'); st.innerHTML = '<span class="spin"></span>Laddar databas…';
+  try {
+    const db = await loadHits();
+    st.textContent = db.length + ' låtar i databasen.';
+    el('hitCount').max = db.length;
+    el('hitCount').value = Math.min(parseInt(el('hitCount').value, 10) || 10, db.length) || db.length;
+  } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
+};
+el('hitBack').onclick = () => showIntro();
+el('hitStart').onclick = async () => {
+  let db;
+  try { db = await loadHits(); } catch (e) { el('hitStatus').innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; return; }
+  if (!db.length) { el('hitStatus').innerHTML = '<span class="error">Databasen är tom.</span>'; return; }
+  let n = Math.max(1, Math.min(parseInt(el('hitCount').value, 10) || 0, db.length));
+  const pool = db.slice();
+  for (let k = pool.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [pool[k], pool[r]] = [pool[r], pool[k]]; }
+  spotQueue = pool.slice(0, n).map(h => ({
+    title: h.title || '',
+    artist: h.artist || '',
+    year: h.year != null ? String(h.year) : '',
+    url: h.url || ('https://open.spotify.com/search/' + encodeURIComponent(((h.artist || '') + ' ' + (h.title || '')).trim())),
+    art: h.art || '',
+  }));
+  spotI = 0;
+  enterSettings({
+    title: 'Hit-quiz', n: spotQueue.length,
+    allCats: ['Artist', 'Låt', 'År'],
+    songLabel: (i) => (spotQueue[i].artist || '?') + ' – ' + (spotQueue[i].title || '?'),
+    back: () => setView('hits'),
+    start: () => { setView('spotify'); spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 }); },
+  });
+};
 
 load();
 initSpotify();
 initTeam();
-initBuilder();
 </script>
 </body>
 </html>
