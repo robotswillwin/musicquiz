@@ -267,7 +267,10 @@
   .track-top .tracknum { margin: 0; flex: 0 0 auto; }
   .reveal-col { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex: 1 1 auto; min-width: 0; }
   .reveal-col .facit { width: 100%; margin-top: 0; order: 1; }
-  .reveal-col .reveal-top { order: 2; }
+  .reveal-col .reveal-head { order: 2; display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+  .always-tog { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: 700 12px/1.2 var(--mono); color: var(--muted); letter-spacing: .04em; }
+  .always-tog input { width: 17px; height: 17px; accent-color: var(--cyan); flex: 0 0 auto; cursor: pointer; }
+  .always-tog:hover { color: var(--ink); }
   .reveal-col .facit .val { font-size: clamp(17px, 3.2vw, 21px); }
   .reveal-col .facit .row { padding: 11px 0; }
   .reveal-col .spot-art { width: 116px; }
@@ -337,9 +340,9 @@
   .pts { display: inline-block; font: 800 10px/1 var(--mono); color: var(--magenta-2); margin-left: 8px; vertical-align: middle; padding: 3px 7px; border: 1px solid rgba(255,45,155,.45); border-radius: 999px; }
   .row.bonus .pts { color: var(--lime); border-color: rgba(91,255,157,.45); }
 
-  nav { display: flex; gap: 12px; margin-top: 28px; }
+  nav { display: flex; gap: 14px; margin: 0 0 20px; }
   nav button {
-    flex: 1; font-family: var(--display); font-size: 16px; font-weight: 700; padding: 15px; border-radius: 12px;
+    flex: 1; font-family: var(--display); font-size: 19px; font-weight: 700; padding: 20px 16px; border-radius: 14px;
     border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink);
     cursor: pointer; transition: border-color .15s, box-shadow .15s, color .15s;
   }
@@ -540,11 +543,19 @@
   <section id="quizView" hidden>
     <p class="counter">Låt <b id="cur">–</b> av <b id="total">–</b></p>
 
+    <nav>
+      <button id="prev">← Föregående</button>
+      <button id="next">Nästa →</button>
+    </nav>
+
     <div class="card">
       <div class="track-top">
         <p class="tracknum" id="tracknum">–</p>
         <div class="reveal-col">
-          <button class="reveal-top" id="revealBtn">Visa facit</button>
+          <div class="reveal-head">
+            <label class="always-tog"><input type="checkbox" id="alwaysFacit"><span>Visa alltid</span></label>
+            <button class="reveal-top" id="revealBtn">Visa facit</button>
+          </div>
           <div class="facit" id="facit">
             <div class="row" data-cat="Tolkare">
               <span class="label">Tolkare<span class="pts">1p</span></span>
@@ -579,11 +590,6 @@
       </div>
 
     </div>
-
-    <nav>
-      <button id="prev">← Föregående</button>
-      <button id="next">Nästa →</button>
-    </nav>
 
     <div class="quiz-tools">
       <button id="teamQrBtn">📱 QR till lagen</button>
@@ -628,11 +634,18 @@
 
     <div id="spotQuiz" hidden>
       <p class="counter">Låt <b id="spotCur">–</b> av <b id="spotTotal">–</b></p>
+      <nav>
+        <button id="spotPrev">← Föregående</button>
+        <button id="spotNext">Nästa →</button>
+      </nav>
       <div class="card">
         <div class="track-top">
           <p class="tracknum" id="spotNum">–</p>
           <div class="reveal-col">
-            <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
+            <div class="reveal-head">
+              <label class="always-tog"><input type="checkbox" id="spotAlwaysFacit"><span>Visa alltid</span></label>
+              <button class="reveal-top" id="spotRevealBtn">Visa facit</button>
+            </div>
             <div class="facit" id="spotFacit">
               <div class="row" data-cat="Artist"><span class="label">Artist<span class="pts">1p</span></span><span class="val" id="spotArtist"></span></div>
               <div class="row" data-cat="Låt"><span class="label">Låt<span class="pts">1p</span></span><span class="val" id="spotTitle"></span></div>
@@ -652,10 +665,6 @@
           </ol>
         </div>
       </div>
-      <nav>
-        <button id="spotPrev">← Föregående</button>
-        <button id="spotNext">Nästa →</button>
-      </nav>
       <div class="quiz-tools">
         <button id="spotSongQrBtn">📱 Låt-QR</button>
         <button id="spotTeamQrBtn">📱 QR till lagen</button>
@@ -940,12 +949,27 @@ function renderTrack() {
   el('originallat').textContent = t.originallat || '—';
   el('ar').textContent = t.ar || '—';
   applyFacitFilter(i);
-  el('facit').classList.remove('show');
-  el('revealBtn').textContent = 'Visa facit';
+  applyAlways(el('facit'), el('revealBtn'), el('alwaysFacit'));
   el('prev').disabled = i === 0;
   el('next').disabled = i === queue.length - 1;
 }
 
+let alwaysFacit = localStorage.getItem('bitster.alwaysFacit') === '1';
+function applyAlways(facit, btn, chk) {
+  if (chk) chk.checked = alwaysFacit;
+  facit.classList.toggle('show', alwaysFacit);
+  btn.hidden = alwaysFacit;
+  btn.disabled = alwaysFacit;
+  if (!alwaysFacit) btn.textContent = 'Visa facit';
+}
+function setAlwaysFacit(on) {
+  alwaysFacit = on;
+  localStorage.setItem('bitster.alwaysFacit', on ? '1' : '0');
+  applyAlways(el('facit'), el('revealBtn'), el('alwaysFacit'));
+  applyAlways(el('spotFacit'), el('spotRevealBtn'), el('spotAlwaysFacit'));
+}
+el('alwaysFacit').onchange = e => setAlwaysFacit(e.target.checked);
+el('spotAlwaysFacit').onchange = e => setAlwaysFacit(e.target.checked);
 el('revealBtn').onclick = () => {
   const f = el('facit');
   f.classList.toggle('show');
@@ -1194,8 +1218,7 @@ function renderSpot() {
   applyFacitFilter(spotI);
   const art = el('spotArt');
   if (t.art) { art.src = t.art; art.hidden = false; } else { art.removeAttribute('src'); art.hidden = true; }
-  el('spotFacit').classList.remove('show');
-  el('spotRevealBtn').textContent = 'Visa facit';
+  applyAlways(el('spotFacit'), el('spotRevealBtn'), el('spotAlwaysFacit'));
   el('spotPrev').disabled = spotI === 0;
   el('spotNext').disabled = spotI === spotQueue.length - 1;
 }
