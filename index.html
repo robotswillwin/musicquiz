@@ -463,6 +463,34 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
+  /* ---- tidslinje (skicka runt, ingen spelledare) ---- */
+  .line-setup-row { display: flex; align-items: center; justify-content: space-between; padding: 17px 2px; border-bottom: 1px solid var(--card-line); }
+  .line-setup-row label { font: 700 15px/1 var(--mono); color: var(--ink); }
+  .stepper { display: inline-flex; align-items: center; gap: 18px; }
+  .stepper button { width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--card-line); background: var(--card); color: var(--ink); font-size: 23px; font-weight: 700; cursor: pointer; line-height: 1; }
+  .stepper button:hover { border-color: var(--cyan); box-shadow: 0 0 16px rgba(34,233,255,.3); }
+  .stepper b { font-family: var(--display); font-size: 26px; color: var(--cyan); min-width: 36px; text-align: center; }
+  .line-pass, .line-win { text-align: center; padding: clamp(34px,10vw,80px) 0; }
+  .line-pass-lead, .line-win-lead { font: 700 13px/1 var(--mono); letter-spacing: .22em; color: var(--muted); text-transform: uppercase; margin: 0 0 16px; }
+  .line-pass-name, .line-win-name { font-family: var(--display); font-size: clamp(36px,12vw,68px); color: var(--magenta); text-shadow: 0 0 26px rgba(255,45,155,.6); margin: 0 0 30px; line-height: 1; }
+  .line-win-sub { color: var(--muted); margin: -16px 0 28px; }
+  .line-card { padding-top: 22px; }
+  .line-listen { text-align: center; margin-bottom: 20px; }
+  .line-hint { font: 600 13px/1.5 var(--mono); color: var(--muted); margin: 13px 4px 0; }
+  .line-timeline { display: flex; flex-direction: column; }
+  .ln-slot { border: 2px dashed var(--card-line); border-radius: 11px; padding: 10px; text-align: center; font: 700 12px/1 var(--mono); color: var(--muted); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin: 6px 0; transition: border-color .15s, color .15s, background .15s; }
+  .ln-slot:hover { border-color: var(--cyan); color: var(--cyan); }
+  .ln-slot.sel { border-style: solid; border-color: var(--cyan); color: #fff; background: rgba(34,233,255,.12); box-shadow: 0 0 18px rgba(34,233,255,.3); }
+  .ln-card { display: flex; align-items: center; gap: 14px; padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--card-line); background: var(--card); margin: 6px 0; }
+  .ln-card .ln-year { font-family: var(--display); font-size: 25px; color: var(--cyan); flex: 0 0 auto; min-width: 64px; }
+  .ln-card .ln-meta { min-width: 0; }
+  .ln-card .ln-title { font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ln-card .ln-artist { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ln-card.ln-new { border-color: var(--magenta); box-shadow: 0 0 22px -6px rgba(255,45,155,.6); }
+  .ln-card.ln-new .ln-year { color: var(--magenta); }
+  .ln-card.ln-wrong { opacity: .6; }
+  .ln-card.ln-wrong .ln-year { text-decoration: line-through; }
+  #lineBoard .primary-btn { margin-top: 4px; }
 </style>
 </head>
 <body data-view="intro">
@@ -501,6 +529,14 @@
         <span class="mode-body">
           <span class="mode-name">Hit-quiz</span>
           <span class="mode-desc">Slumpa låtar ur hit-databasen — du väljer hur många. Lagen gissar artist, låt och år.</span>
+        </span>
+        <span class="mode-go" aria-hidden="true">▶</span>
+      </button>
+      <button class="mode-card" id="modeLine">
+        <span class="mode-num">04</span>
+        <span class="mode-body">
+          <span class="mode-name">Tidslinje <em>· skicka runt</em></span>
+          <span class="mode-desc">Ingen spelledare — en mobil räcker. Lyssna på ett klipp och placera låten rätt i tiden. Först till mål vinner.</span>
         </span>
         <span class="mode-go" aria-hidden="true">▶</span>
       </button>
@@ -713,6 +749,58 @@
       <div class="quiz-tools"><button id="teamBack">‹ Tillbaka och ändra</button></div>
     </div>
   </section>
+
+  <!-- ============ TIDSLINJE (skicka runt — ingen spelledare) ============ -->
+  <section id="lineView" hidden>
+    <button class="back-link" id="lineBack">‹ Bitster-meny</button>
+
+    <div id="lineSetup">
+      <p class="sub">Skicka runt en mobil. Lyssna på ett 30-sekunders klipp och placera låten rätt i din tidslinje. Först till målet vinner — ingen spelledare behövs.</p>
+      <div class="line-setup-row">
+        <label>Spelare</label>
+        <div class="stepper"><button id="lnPlayersDown" type="button">−</button><b id="lnPlayers">3</b><button id="lnPlayersUp" type="button">+</button></div>
+      </div>
+      <div class="line-setup-row">
+        <label>Kort att vinna</label>
+        <div class="stepper"><button id="lnTargetDown" type="button">−</button><b id="lnTarget">6</b><button id="lnTargetUp" type="button">+</button></div>
+      </div>
+      <p class="status" id="lineSetupStatus"></p>
+      <button class="primary-btn" id="lineStart" disabled>Starta →</button>
+    </div>
+
+    <div id="linePass" hidden>
+      <div class="line-pass">
+        <p class="line-pass-lead">Lämna mobilen till</p>
+        <p class="line-pass-name" id="linePassName">Spelare 2</p>
+        <button class="primary-btn" id="lineReady">Jag är redo 👀</button>
+      </div>
+    </div>
+
+    <div id="lineBoard" hidden>
+      <p class="counter"><b id="lineWho">Spelare 1</b> · <span id="lineCount">1</span>/<span id="lineGoal">6</span> kort</p>
+      <div class="card line-card">
+        <div class="line-listen">
+          <button class="primary-btn" id="linePlayBtn">▶ Spela låten</button>
+          <p class="line-hint" id="lineHint">Okänd låt — lyssna och placera den.</p>
+        </div>
+        <div class="line-timeline" id="lineTimeline"></div>
+      </div>
+      <button class="primary-btn" id="lineLock" disabled>Lås placering</button>
+      <button class="primary-btn" id="lineNext" hidden>Nästa spelare →</button>
+    </div>
+
+    <div id="lineWin" hidden>
+      <div class="line-win">
+        <p class="line-win-lead">🏆 Vinnare</p>
+        <p class="line-win-name" id="lineWinName">Spelare 1</p>
+        <p class="line-win-sub" id="lineWinSub"></p>
+        <button class="primary-btn" id="lineAgain">Spela igen</button>
+        <button class="back-link" id="lineToMenu">Till menyn</button>
+      </div>
+    </div>
+
+    <audio id="lineAudio" preload="none"></audio>
+  </section>
 </div>
 
 <div class="modal" id="teamQrPanel" hidden>
@@ -898,14 +986,17 @@ function setView(name) {
   el('settingsView').hidden = name !== 'settings';
   el('lobbyView').hidden = name !== 'lobby';
   el('hitView').hidden = name !== 'hits';
+  el('lineView').hidden = name !== 'line';
   const sec = document.querySelector('.section');
   sec.hidden = name === 'intro' || name === 'team';
   if (name === 'spotify') sec.textContent = 'Spotify-quiz';
   else if (name === 'settings' || name === 'lobby') sec.textContent = (quizCtx && quizCtx.title) || '';
+  else if (name === 'line') sec.textContent = 'Tidslinje';
   else if (name === 'quiz' || name === 'setup') sec.innerHTML = 'Vem tolkar <em>vem?</em>';
   document.body.setAttribute('data-view', name);
   document.querySelector('header').title = (name === 'intro' || name === 'team') ? '' : 'Tillbaka till start';
   if (name !== 'quiz')  el('audio').pause();
+  if (name !== 'line')  el('lineAudio').pause();
   if (name !== 'setup') stopPreview();
   window.scrollTo({ top: 0 });
 }
@@ -1490,6 +1581,145 @@ el('hitStart').onclick = async () => {
     start: () => { setView('spotify'); spShow('quiz'); renderSpot(); window.scrollTo({ top: 0 }); },
   });
 };
+
+/* ---------- Tidslinje: skicka runt, ingen spelledare (spelar 30s-klipp ur hits.json) ---------- */
+let lnGame = null, lnPlayers = 3, lnTarget = 6;
+function lineShow(which) {
+  el('lineSetup').hidden = which !== 'setup';
+  el('linePass').hidden  = which !== 'pass';
+  el('lineBoard').hidden = which !== 'board';
+  el('lineWin').hidden   = which !== 'win';
+}
+function lineStep(which, d) {
+  if (which === 'players') lnPlayers = Math.max(2, Math.min(8, lnPlayers + d));
+  else lnTarget = Math.max(4, Math.min(12, lnTarget + d));
+  el('lnPlayers').textContent = lnPlayers;
+  el('lnTarget').textContent = lnTarget;
+}
+el('lnPlayersUp').onclick = () => lineStep('players', 1);
+el('lnPlayersDown').onclick = () => lineStep('players', -1);
+el('lnTargetUp').onclick = () => lineStep('target', 1);
+el('lnTargetDown').onclick = () => lineStep('target', -1);
+
+el('modeLine').onclick = async () => {
+  setView('line'); lineShow('setup');
+  el('lnPlayers').textContent = lnPlayers; el('lnTarget').textContent = lnTarget;
+  const st = el('lineSetupStatus'); st.innerHTML = '<span class="spin"></span>Laddar hit-databasen…';
+  el('lineStart').disabled = true;
+  try {
+    const clips = (await loadHits()).filter(h => h.previewUrl && parseInt(h.year, 10));
+    if (clips.length < 6) st.innerHTML = '<span class="error">Bara ' + clips.length + ' låtar har ljudklipp + år. Kör <b>node tools/add-previews.mjs</b>.</span>';
+    else { st.textContent = clips.length + ' låtar redo (med klipp & år).'; el('lineStart').disabled = false; }
+  } catch (e) { st.innerHTML = '<span class="error">' + escapeHtml(e.message) + '</span>'; }
+};
+el('lineBack').onclick = () => { el('lineAudio').pause(); showIntro(); };
+el('lineToMenu').onclick = () => { el('lineAudio').pause(); showIntro(); };
+el('lineAgain').onclick = () => el('modeLine').click();
+
+el('lineStart').onclick = async () => {
+  let clips = (await loadHits()).filter(h => h.previewUrl && parseInt(h.year, 10))
+    .map(h => ({ title: h.title || '', artist: h.artist || '', year: parseInt(h.year, 10), previewUrl: h.previewUrl }));
+  if (clips.length < lnPlayers + 2) { el('lineSetupStatus').innerHTML = '<span class="error">För få låtar med klipp & år.</span>'; return; }
+  for (let k = clips.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [clips[k], clips[r]] = [clips[r], clips[k]]; }
+  const players = [];
+  for (let p = 0; p < lnPlayers; p++) players.push({ name: 'Spelare ' + (p + 1), cards: [clips.pop()] });
+  lnGame = { players, deck: clips, cur: 0, target: lnTarget, pending: null, slot: null };
+  el('lineGoal').textContent = lnTarget;
+  lineNextTurn();
+};
+
+function lineNextTurn() {
+  lnGame.slot = null;
+  lnGame.pending = lnGame.deck.pop();
+  if (!lnGame.pending) { lineEnd(); return; }
+  el('linePassName').textContent = lnGame.players[lnGame.cur].name;
+  lineShow('pass');
+}
+el('lineReady').onclick = () => {
+  const pl = lnGame.players[lnGame.cur];
+  el('lineWho').textContent = pl.name;
+  el('lineCount').textContent = pl.cards.length;
+  el('lineHint').textContent = 'Okänd låt — lyssna och placera den i tiden.';
+  el('lineLock').hidden = false; el('lineLock').disabled = true;
+  el('lineNext').hidden = true;
+  lineRenderPlacing();
+  lineShow('board');
+  lnPlay();
+};
+function lnPlay() {
+  const a = el('lineAudio');
+  a.src = lnGame.pending.previewUrl; a.currentTime = 0;
+  a.play().then(() => { el('linePlayBtn').textContent = '⏸ Pausa'; }).catch(() => { el('linePlayBtn').textContent = '▶ Spela låten'; });
+}
+el('linePlayBtn').onclick = () => {
+  const a = el('lineAudio');
+  if (a.paused) lnPlay();
+  else { a.pause(); el('linePlayBtn').textContent = '▶ Spela igen'; }
+};
+el('lineAudio').onended = () => { el('linePlayBtn').textContent = '▶ Spela igen'; };
+
+function lnCardEl(c, cls) {
+  const d = document.createElement('div'); d.className = 'ln-card' + (cls ? ' ' + cls : '');
+  d.innerHTML = '<div class="ln-year">' + c.year + '</div><div class="ln-meta"><div class="ln-title">' + escapeHtml(c.title) + '</div><div class="ln-artist">' + escapeHtml(c.artist) + '</div></div>';
+  return d;
+}
+function lineRenderPlacing() {
+  const cards = lnGame.players[lnGame.cur].cards, tl = el('lineTimeline'); tl.innerHTML = '';
+  const slot = (i) => {
+    const s = document.createElement('div'); s.className = 'ln-slot' + (lnGame.slot === i ? ' sel' : '');
+    s.textContent = i === 0 ? '↑ äldre' : (i === cards.length ? '↓ nyare' : 'här');
+    s.onclick = () => { lnGame.slot = i; el('lineLock').disabled = false; lineRenderPlacing(); };
+    tl.appendChild(s);
+  };
+  for (let i = 0; i < cards.length; i++) { slot(i); tl.appendChild(lnCardEl(cards[i])); }
+  slot(cards.length);
+}
+el('lineLock').onclick = () => {
+  if (lnGame.slot == null) return;
+  el('lineAudio').pause(); el('linePlayBtn').textContent = '▶ Spela igen';
+  const pl = lnGame.players[lnGame.cur], cards = pl.cards, Y = lnGame.pending.year, g = lnGame.slot;
+  const lo = g === 0 ? -Infinity : cards[g - 1].year, hi = g === cards.length ? Infinity : cards[g].year;
+  const correct = Y >= lo && Y <= hi;
+  if (correct) cards.splice(g, 0, lnGame.pending);
+  el('lineHint').innerHTML = (correct ? '<b style="color:var(--cyan)">✓ Rätt!</b> ' : '<b style="color:var(--magenta)">✗ Fel.</b> ')
+    + escapeHtml(lnGame.pending.artist + ' – ' + lnGame.pending.title) + ' (' + Y + ')';
+  el('lineCount').textContent = cards.length;
+  el('lineLock').hidden = true;
+  lineRenderRevealed(correct);
+  lnGame._won = cards.length >= lnGame.target;
+  el('lineNext').hidden = false;
+  el('lineNext').textContent = lnGame._won ? ('🏆 ' + pl.name + ' vann — visa!') : 'Nästa spelare →';
+};
+function lineRenderRevealed(correct) {
+  const pl = lnGame.players[lnGame.cur], cards = pl.cards, tl = el('lineTimeline'); tl.innerHTML = '';
+  if (correct) {
+    cards.forEach((c) => tl.appendChild(lnCardEl(c, c === lnGame.pending ? 'ln-new' : '')));
+  } else {
+    for (let i = 0; i <= cards.length; i++) {
+      if (i === lnGame.slot) tl.appendChild(lnCardEl(lnGame.pending, 'ln-new ln-wrong'));
+      if (i < cards.length) tl.appendChild(lnCardEl(cards[i]));
+    }
+  }
+}
+el('lineNext').onclick = () => {
+  if (lnGame._won) { lineWin(lnGame.players[lnGame.cur]); return; }
+  lnGame.cur = (lnGame.cur + 1) % lnGame.players.length;
+  lineNextTurn();
+};
+function lineWin(pl) {
+  el('lineAudio').pause();
+  el('lineWinName').textContent = pl.name;
+  el('lineWinSub').textContent = pl.cards.length + ' kort i tidslinjen.';
+  lineShow('win');
+}
+function lineEnd() {
+  el('lineAudio').pause();
+  let best = lnGame.players[0];
+  lnGame.players.forEach(p => { if (p.cards.length > best.cards.length) best = p; });
+  el('lineWinName').textContent = best.name;
+  el('lineWinSub').textContent = 'Slut på låtar! Flest kort: ' + best.cards.length + '.';
+  lineShow('win');
+}
 
 load();
 initSpotify();
